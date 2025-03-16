@@ -64,7 +64,9 @@ jobs:
       result: ${{ steps.get-files.outputs.result }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  
+        with:
+          fetch-depth: 0
 
       - name: Determine Dockerfiles to build
         id: get-files
