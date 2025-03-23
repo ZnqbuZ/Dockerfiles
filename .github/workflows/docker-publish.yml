@@ -1,6 +1,8 @@
 name: Build and Push Docker Images
 
 on:
+  schedule:
+    - cron: '0 0 * * 1'
   workflow_dispatch:
   push:
     paths:
@@ -19,9 +21,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Debug needs output
-        run: echo ${{ needs.detect-changes.outputs.result }}
 
       - name: Set up QEMU (for multi-arch builds)
         uses: docker/setup-qemu-action@v3
@@ -71,7 +70,7 @@ jobs:
       - name: Determine Dockerfiles to build
         id: get-files
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] || [ "${{ github.event_name }}" = "schedule" ]; then
             FILES=$(find . -type f -name "Dockerfile")
           else
             FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '.*/Dockerfile' || true)
