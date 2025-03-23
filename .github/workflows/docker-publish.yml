@@ -51,6 +51,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          context: ${{ matrix.dockerfile }}
           file: ${{ matrix.dockerfile }}
           push: true
           tags: |
@@ -70,8 +71,8 @@ jobs:
       - name: Determine Dockerfiles to build
         id: get-files
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] || [ "${{ github.event_name }}" = "schedule" ]; then
-            FILES=$(find . -type f -name "Dockerfile")
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" = "schedule" ]]; then
+            FILES=$(find . -type f -name "Dockerfile" || true)
           else
             FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '.*/Dockerfile' || true)
           fi
