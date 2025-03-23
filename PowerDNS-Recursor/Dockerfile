@@ -1,1 +1,1 @@
-FROM powerdns/pdns-recursor-52:latest
+FROM docker.io/powerdns/pdns-recursor-52:latest

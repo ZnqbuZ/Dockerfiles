@@ -1,4 +1,4 @@
-FROM postgres:latest
+FROM docker.io/postgres:latest
 
 RUN set -eux; \
         /bin/echo -e '\
