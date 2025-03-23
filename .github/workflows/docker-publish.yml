@@ -40,6 +40,7 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
           DOCKERFILE_PATH="${{ matrix.dockerfile }}"
+          DOCKERFILE_DIR="$(dirname "$DOCKERFILE_PATH")"
           IMAGE_NAME="${DOCKERFILE_PATH#./}"
           IMAGE_NAME="${IMAGE_NAME%/Dockerfile}"
           IMAGE_NAME="$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
@@ -47,12 +48,14 @@ jobs:
           IMAGE_TAG="latest"
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
           echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "DOCKERFILE_PATH=${DOCKERFILE_PATH}" >> $GITHUB_ENV
+          echo "DOCKERFILE_DIR=${DOCKERFILE_DIR}" >> $GITHUB_ENV
         
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.dockerfile }}/..
-          file: ${{ matrix.dockerfile }}
+          file: ${{ env.DOCKERFILE_PATH }}
+          context: ${{ env.DOCKERFILE_DIR }}
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
