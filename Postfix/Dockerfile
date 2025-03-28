@@ -2,7 +2,7 @@ FROM docker.io/alpine:latest
 
 RUN set -eux; \
 	apk update \
-	&& apk add postfix \
+	&& apk add postfix
 
 RUN set -eux; \
 	rm -rf /var/cache/apk/*
