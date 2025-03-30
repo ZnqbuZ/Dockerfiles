@@ -29,7 +29,7 @@ if not (dns_zone and portainer_api_endpoint and portainer_api_token and powerdns
 
 logging.basicConfig(
         level=logging.getLevelName(log_level),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        format='%(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 powerdns_api_endpoint += f"/servers/localhost/zones/{dns_zone}"
