@@ -92,6 +92,6 @@ jobs:
             done
           fi
 
-          DOCKERFILES_JSON=$(echo "$DOCKERFILES" | jq -R -s -c 'split("\n")[:-1]')
+          DOCKERFILES_JSON=$(echo "$DOCKERFILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "Rebuild: $DOCKERFILES_JSON"
           echo "result=$DOCKERFILES_JSON" >> $GITHUB_OUTPUT
