@@ -28,7 +28,7 @@ if not (dns_zone and portainer_api_endpoint and portainer_api_token and powerdns
                      "PORTAINER_API_TOKEN, POWERDNS_API_ENDPOINT, POWERDNS_API_TOKEN")
 
 logging.basicConfig(
-        level=logging.getLevelName(log_level),
+        level=getattr(logging, log_level, logging.INFO),
         format='%(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -59,6 +59,7 @@ while True:
         for endpoint in endpoints:
             domain_name = endpoint["Name"].replace(" ", "-").replace(".", "-") + "." + dns_zone
             for container in endpoint["Snapshots"][0]["DockerSnapshotRaw"]["Containers"]:
+                logger.debug(f"Container: {container["Names"]} @ {endpoint["Name"]} {container["Id"]}")
                 fqdn = f"{container["Id"][:6]}.{domain_name}"
                 for name in container["Names"]:
                     rrsets.append({
@@ -73,6 +74,22 @@ while True:
                             }
                         ]
                     })
+
+                if "host" in container["NetworkSettings"]["Networks"]:
+                    logger.debug(f"Host network found. Use CNAME record: {fqdn} -> {domain_name}")
+                    rrsets.append({
+                        "name": fqdn,
+                        "type": "CNAME",
+                        "ttl": 60,
+                        "changetype": "REPLACE",
+                        "records": [
+                            {
+                                "content": domain_name,
+                                "disabled": False
+                            }
+                        ]
+                    })
+                    continue
 
                 A_rrset = {
                     "name": fqdn,
@@ -93,6 +110,7 @@ while True:
                 for network in container["NetworkSettings"]["Networks"]:
                     ip = container["NetworkSettings"]["Networks"][network]["IPAddress"]
                     if ip:
+                        logger.debug(f"IPv4 Address: {ip}")
                         A_rrset["records"].append({
                             "content": ip,
                             "disabled": False
@@ -100,6 +118,7 @@ while True:
 
                     ipv6 = container["NetworkSettings"]["Networks"][network]["GlobalIPv6Address"]
                     if ipv6:
+                        logger.debug(f"IPv6 Address: {ipv6}")
                         AAAA_rrset["records"].append({
                             "content": ipv6,
                             "disabled": False
