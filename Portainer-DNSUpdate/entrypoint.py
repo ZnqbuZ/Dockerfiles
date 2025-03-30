@@ -2,9 +2,17 @@
 import json
 import os
 from time import sleep
+import logging
+import signal
 
 import requests
 from deepdiff import DeepDiff
+
+def handle_sigterm(signum, frame):
+    print("Received SIGTERM. Exiting...")
+    exit(0)
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 dns_zone = os.getenv("DNS_ZONE")
@@ -19,20 +27,32 @@ if not (dns_zone and portainer_api_endpoint and portainer_api_token and powerdns
     raise ValueError("Please set the required environment variables: DNS_ZONE, PORTAINER_API_ENDPOINT, "
                      "PORTAINER_API_TOKEN, POWERDNS_API_ENDPOINT, POWERDNS_API_TOKEN")
 
+logging.basicConfig(
+        level=logging.getLevelName(log_level),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+powerdns_api_endpoint += f"/servers/localhost/zones/{dns_zone}"
+
+logger.info("Started.")
+
 rrsets_cache = []
 
 while True:
     sleep(5)
     try:
+        logger.debug("Retrieving endpoints...")
         response = requests.get(portainer_api_endpoint + "/endpoints", headers={"X-API-Key": portainer_api_token})
 
         if response.status_code != 200:
-            err_msg = "Error: Unable to fetch endpoints\n"
+            err_msg = "Error: Unable to fetch endpoints.\n"
             err_msg += f"Status Code: {response.status_code}\n"
             err_msg += f"Response: {response.text}\n"
             raise Exception(err_msg)
 
         endpoints = response.json()
+
+        logger.debug(f"Found: {[endpoint["Name"] for endpoint in endpoints]}")
 
         rrsets = []
 
@@ -90,16 +110,19 @@ while True:
                 if AAAA_rrset["records"]:
                     rrsets.append(AAAA_rrset)
 
+        logger.debug("Detecting change...")
+
         change = DeepDiff(rrsets_cache, rrsets, ignore_order=True)
         if not change:
-            print("No change detected")
+            logger.debug("No change detected.")
             continue
 
-        print(change)
+        logger.debug(change)
 
+        logger.debug("Retriving zone info...")
         response = requests.get(powerdns_api_endpoint, headers={"X-API-Key": powerdns_api_token})
         if response.status_code != 200:
-            err_msg = "Error: Unable to fetch DNS zone details\n"
+            err_msg = "Error: Unable to fetch DNS zone details.\n"
             err_msg += f"Status Code: {response.status_code}\n"
             err_msg += f"Response: {response.text}\n"
             raise Exception(err_msg)
@@ -110,6 +133,7 @@ while True:
                           filter(lambda r: r["type"] == "A" or r["type"] == "AAAA" or r["type"] == "CNAME",
                                  dns_zone_details["rrsets"]))).extend(rrsets)
 
+        logger.info("Updating records...")
         response = requests.patch(powerdns_api_endpoint, data=json.dumps({"rrsets": rrsets}),
                                   headers={"X-API-Key": powerdns_api_token, "Content-Type": "application/json"})
         if response.status_code != 204:
@@ -118,9 +142,10 @@ while True:
             err_msg += f"Response: {response.text}\n"
             raise Exception(err_msg)
 
+        logger.info("Rectifying zone...")
         response = requests.put(powerdns_api_endpoint + "/rectify", headers={"X-API-Key": powerdns_api_token})
         if response.status_code != 200:
-            err_msg = "Error: Unable to rectify records\n"
+            err_msg = "Error: Unable to rectify records.\n"
             err_msg += f"Status Code: {response.status_code}\n"
             err_msg += f"Response: {response.text}\n"
             raise Exception(err_msg)
@@ -128,6 +153,6 @@ while True:
         rrsets_cache = rrsets
 
     except Exception as err:
-        print(err)
+        logger.error(err)
         continue
 
