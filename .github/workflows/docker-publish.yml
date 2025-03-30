@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - '**/Dockerfile'
+      - '**/*'
     branches:
       - main
 
@@ -64,22 +64,34 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      result: ${{ steps.get-files.outputs.result }}
+      result: ${{ steps.get-dockerfiles.outputs.result }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4  
         with:
           fetch-depth: 0
 
+      - name: Determine changed directories
+        id: get-dirs
+        run: |
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          CHANGED_DIRS=$(echo "$CHANGED_FILES" | sed 's|/[^/]*$||' | sort -u)
+          echo "Changed directories: $CHANGED_DIRS"
+          echo "changed_dirs=$CHANGED_DIRS" >> $GITHUB_ENV
+
       - name: Determine Dockerfiles to build
-        id: get-files
+        id: get-dockerfiles
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" = "schedule" ]]; then
-            FILES=$(find . -type f -name "Dockerfile" || true)
+            DOCKERFILES=$(find . -type f -name "Dockerfile" || true)
           else
-            FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '.*/Dockerfile' || true)
+            for DIR in ${{ env.changed_dirs }}; do
+              if [[ -f "${DIR}/Dockerfile" ]]; then
+                DOCKERFILES+=("${DIR}/Dockerfile")
+              fi
+            done
           fi
 
-          FILES_JSON=$(echo "$FILES" | jq -R -s -c 'split("\n")[:-1]')
-          echo "Detected files: $FILES_JSON"
-          echo "result=$FILES_JSON" >> $GITHUB_OUTPUT
+          DOCKERFILES_JSON=$(echo "$DOCKERFILES" | jq -R -s -c 'split("\n")[:-1]')
+          echo "Rebuild: $DOCKERFILES_JSON"
+          echo "result=$DOCKERFILES_JSON" >> $GITHUB_OUTPUT
