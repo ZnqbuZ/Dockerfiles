@@ -14,7 +14,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     needs: detect-changes
-    if: ${{ !eq(needs.detect-changes.outputs.result, '[]') }}
+    if: ${{ needs.detect-changes.outputs.result != '[]' }}
     strategy:
       matrix:
         dockerfile: ${{ fromJson(needs.detect-changes.outputs.result) }}
