@@ -13,7 +13,7 @@ RUN set -eux; \
 RUN set -eux; \
 	git clone https://github.com/ZnqbuZ/LaTeX.git ~/LaTeX \
 	&& sh ~/LaTeX/font-cache.sh \
-	&& sh ~/LaTeX/precompile/build.sh
+	&& sh ~/LaTeX/build.sh
 
 RUN set -eux; \
 	rm -rf /var/lib/apt/lists/*
