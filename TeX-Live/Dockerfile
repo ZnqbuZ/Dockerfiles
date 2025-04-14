@@ -4,8 +4,8 @@ RUN set -eux; \
 	tlmgr path add
 
 RUN set -eux; \
-	apt update \
-	&& apt install fish ssh syncthing fonts-noto-cjk-extra -y --no-install-recommends
+	apt-get update \
+	&& apt-get install fish ssh syncthing fonts-arphic-ukai fonts-arphic-uming fonts-lxgw-wenkai fonts-noto-cjk-extra fonts-smiley-sans fonts-wqy-microhei fonts-wqy-zenhei -y --no-install-recommends
 
 RUN set -eux; \
 	chsh -s /usr/bin/fish
