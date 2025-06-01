@@ -162,7 +162,7 @@ while True:
             logger.debug("No change detected.")
             continue
 
-        logger.debug(change)
+        logger.info(change)
 
         logger.debug("Retriving zone info...")
         response = requests.get(
@@ -218,8 +218,10 @@ while True:
             err_msg += f"Response: {response.text}\n"
             raise Exception(err_msg)
 
+        logger.info("Updated.")
+
         rrsets_cache = rrsets
 
     except Exception as err:
-        logger.error(err)
+        logger.error(err, exc_info=True)
         continue
