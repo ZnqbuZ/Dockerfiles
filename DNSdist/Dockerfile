@@ -1,1 +1,1 @@
-FROM docker.io/powerdns/dnsdist-19:latest
+FROM docker.io/powerdns/dnsdist-20:latest

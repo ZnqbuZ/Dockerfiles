@@ -1,1 +1,1 @@
-FROM docker.io/powerdns/pdns-auth-49:latest
+FROM docker.io/powerdns/pdns-auth-50:latest
