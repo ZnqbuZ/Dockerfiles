@@ -76,7 +76,7 @@ jobs:
         id: get-dirs
         run: |
           CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          CHANGED_DIRS=$(echo "$CHANGED_FILES" | sed 's|/[^/]*$||' | sort -u)
+          CHANGED_DIRS=$(echo "$CHANGED_FILES" | sed 's|/[^/]*$||' | sort -u | tr '\n' ' ')
           echo "Changed directories: $CHANGED_DIRS"
           echo "changed_dirs=$CHANGED_DIRS" >> $GITHUB_ENV
 
