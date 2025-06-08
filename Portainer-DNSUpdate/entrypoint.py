@@ -16,7 +16,7 @@ def handle_sigterm(signum, frame):
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
-log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
 dns_zone = os.getenv("DNS_ZONE")
 base_zone = os.getenv("BASE_ZONE", dns_zone)
 
@@ -39,7 +39,7 @@ if not (
     )
 
 logging.basicConfig(
-    level=getattr(logging, log_level, logging.INFO),
+    level=log_level,
     format="%(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -223,5 +223,5 @@ while True:
         rrsets_cache = rrsets
 
     except Exception as err:
-        logger.error(err, exc_info=True)
+        logger.error(err, exc_info=logger.getEffectiveLevel() <= logging.INFO)
         continue
