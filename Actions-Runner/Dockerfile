@@ -50,5 +50,5 @@ USER runner
 
 ENTRYPOINT [ "tini", "--", "/usr/local/bin/entrypoint" ]
 
-CMD [ "./config.sh --url $$RUNNER_URL --token $$RUNNER_TOKEN --name $$RUNNER_NAME --unattended --replace && ./run.sh" ]
+CMD [ "./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace && ./run.sh" ]
 
