@@ -8,7 +8,7 @@ RUN set -eux; \
 
 RUN set -eux; \
 	apt-get update \
-	&& apt-get install fish ssh syncthing fonts-arphic-ukai fonts-arphic-uming fonts-lxgw-wenkai fonts-noto-cjk-extra fonts-smiley-sans fonts-wqy-microhei fonts-wqy-zenhei -y --no-install-recommends \
+	&& apt-get install tini fish ssh syncthing fonts-arphic-ukai fonts-arphic-uming fonts-lxgw-wenkai fonts-noto-cjk-extra fonts-smiley-sans fonts-wqy-microhei fonts-wqy-zenhei -y --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
@@ -19,4 +19,4 @@ RUN set -eux; \
 COPY entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
-ENTRYPOINT [ "entrypoint" ]
+ENTRYPOINT [ "tini", "--", "/usr/local/bin/entrypoint" ]
