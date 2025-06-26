@@ -25,6 +25,7 @@ runner = {
         'DOCKER_GID': docker_gid,
         'RUNNER_URL': runner_url,
         'RUNNER_TOKEN': runner_token,
+        'RUNNER_UID': 42000,
     }
 }
 
