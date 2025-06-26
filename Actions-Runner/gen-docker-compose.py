@@ -1,15 +1,25 @@
 import yaml
 import copy
 import os
+import argparse
 
-runners_dir = f"/var/lib/runners"
+parser = argparse.ArgumentParser(description="Generate a Docker Compose file for GitHub Actions runners.")
 
-runner_group = "ec2"
-scale = 4
+parser.add_argument("--dir", type=str, default="/var/lib/runners", help="Directory for runners")
+parser.add_argument("--prefix", type=str, help="Prefix for runner names")
+parser.add_argument("--scale", type=int, default=4, help="Number of runners to create")
+parser.add_argument("--docker-gid", type=int, help="GID for the Docker group on the host")
+parser.add_argument("--url", type=str, help="URL of the GitHub Actions runner")
+parser.add_argument("--token", type=str, help="Token for the GitHub Actions runner")
 
-docker_gid = 0
-runner_url = ""
-runner_token = ""
+args = parser.parse_args()
+runners_dir = args.dir
+runner_group = args.prefix
+scale = args.scale
+
+docker_gid = args.docker_gid
+runner_url = args.url
+runner_token = args.token
 
 compose = {
     'services': {}
