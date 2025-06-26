@@ -14,13 +14,9 @@ if [ -n "${RUNNER_UID:-}" ]; then
 
 	adduser --disabled-password --gecos "" --uid $RUNNER_UID --home $RUNNER_HOME --no-create-home $RUNNER_USERNAME
 	usermod -aG sudo,docker-host $RUNNER_USERNAME
-
-	RUNNER_RUN=gosu $RUNNER_USERNAME
 else
 	RUNNER_UID=0
 	RUNNER_USERNAME=root
-
-	RUNNER_RUN=
 fi
 
 echo "root       ALL=(ALL:ALL) ALL" > /etc/sudoers
@@ -43,7 +39,7 @@ cd $RUNNER_HOME
 
 if [ $IS_INSTALLED -eq 0 ]; then
 	echo "Configuring..."
-	$RUNNER_RUN ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
+	gosu $RUNNER_USERNAME ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
 fi
 
-exec $RUNNER_RUN bash -c "$@"
+exec gosu $RUNNER_USERNAME bash -c "$@"
