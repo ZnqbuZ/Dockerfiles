@@ -12,7 +12,6 @@ runner_url = ""
 runner_token = ""
 
 compose = {
-    'version': '3.8',
     'services': {}
 }
 
