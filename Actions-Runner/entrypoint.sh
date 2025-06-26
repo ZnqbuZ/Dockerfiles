@@ -2,11 +2,22 @@
 
 set -euxo pipefail
 
+echo "Will run in ${RUNNER_HOME}"
+
 groupadd -g $DOCKER_GID -f docker-host
 
-adduser --disabled-password --gecos "" --uid $RUNNER_UID --home $RUNNER_HOME --no-create-home runner
+if [ -n "${RUNNER_UID:-}" ]; then
+	if [ -z "${RUNNER_USERNAME:-}" ]; then
+		RUNNER_USERNAME=runner
+		echo "RUNNER_USERNAME is not set, using default: $RUNNER_USERNAME"
+	fi
 
-usermod -aG sudo,docker-host runner
+	adduser --disabled-password --gecos "" --uid $RUNNER_UID --home $RUNNER_HOME --no-create-home $RUNNER_USERNAME
+	usermod -aG sudo,docker-host $RUNNER_USERNAME
+else
+	RUNNER_UID=0
+	RUNNER_USERNAME=root
+fi
 
 echo "root       ALL=(ALL:ALL) ALL" > /etc/sudoers
 echo "%sudo      ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -23,13 +34,12 @@ else
 	rsync -a --info=progress2 --delete /runner/ $RUNNER_HOME/
 fi
 
-chown runner:runner -R $RUNNER_HOME
+chown $RUNNER_USERNAME:$RUNNER_USERNAME -R $RUNNER_HOME
 cd $RUNNER_HOME
 
 if [ $IS_INSTALLED -eq 0 ]; then
 	echo "Configuring..."
-	gosu runner ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
+	gosu $RUNNER_USERNAME ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
 fi
 
-exec gosu runner bash -c "$@"
-
+exec gosu $RUNNER_USERNAME bash -c "$@"
