@@ -17,7 +17,7 @@ if [ -n "${RUNNER_UID:-}" ]; then
 else
 	RUNNER_UID=0
 	RUNNER_USERNAME=root
-	RUNNER_ALLOW_RUNASROOT=1
+	export RUNNER_ALLOW_RUNASROOT=1
 fi
 
 echo "root       ALL=(ALL:ALL) ALL" > /etc/sudoers
