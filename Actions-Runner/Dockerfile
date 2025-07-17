@@ -6,17 +6,28 @@ ENV ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
 
 RUN set -eux; \
     install -m 0755 -d /etc/apt/keyrings \
-    && install -m 0755 -d /etc/apt/sources.list.d \
-    && apt-get update \
+    && install -m 0755 -d /etc/apt/sources.list.d 
+
+RUN set -eux; \
+    apt-get update \
     && apt-get install -y --no-install-recommends \
         tini gosu sudo \ 
         lsb-release gpg-agent software-properties-common \
         ca-certificates curl wget rsync \
-        build-essential \
-        git \
-        jq \
-        unzip \
+        git build-essential \
+        jq unzip \
     && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3 python3-pip python3-venv pipx \
+    && rm -rf /var/lib/apt/lists/* \
+    && pipx install pipx \
+    && apt-get autoremove --purge -y pipx \
+    && ~/.local/bin/pipx install pipx --global \
+    && /usr/local/bin/pipx uninstall pipx \
+    && /usr/local/bin/pipx ensurepath --global
 
 RUN set -eux; \
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
