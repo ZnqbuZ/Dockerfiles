@@ -18,6 +18,12 @@ RUN set -eux; \
         jq unzip \
     && rm -rf /var/lib/apt/lists/*
 
+RUN  set -eux; \
+    echo "root       ALL=(ALL:ALL) ALL" > /etc/sudoers \
+    && echo "%sudo      ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers \
+    && echo 'Defaults   env_keep += "DEBIAN_FRONTEND"' >> /etc/sudoers \
+	&& echo 'Defaults   env_keep += "HOME"' >> /etc/sudoers
+
 RUN set -eux; \
     apt-get update \
     && apt-get install -y --no-install-recommends \

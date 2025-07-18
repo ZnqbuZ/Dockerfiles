@@ -2,45 +2,65 @@
 
 set -euxo pipefail
 
-echo "Will run in ${RUNNER_HOME}"
+USER="runner"
+GROUP="runner"
 
-groupadd -g $DOCKER_GID -f docker-host
+GID=${GID:-${UID:-}}
 
-if [ -n "${RUNNER_UID:-}" ]; then
-	if [ -z "${RUNNER_USERNAME:-}" ]; then
-		RUNNER_USERNAME=runner
-		echo "RUNNER_USERNAME is not set, using default: $RUNNER_USERNAME"
-	fi
-
-	adduser --disabled-password --gecos "" --uid $RUNNER_UID --home $RUNNER_HOME --no-create-home $RUNNER_USERNAME
-	usermod -aG sudo,docker-host $RUNNER_USERNAME
+if [ -n "${GID:-}" ]; then
+    echo "GID set to $GID."
+    EXISTING_GROUP=$(getent group "$GID" | cut -d: -f1 || true)
+    if [ -n "$EXISTING_GROUP" ]; then
+        GROUP="$EXISTING_GROUP"
+        echo "Using existing group '$GROUP' with GID $GID."
+    else
+        echo "Creating group '$GROUP' with GID $GID."
+        addgroup --gid "$GID" "$GROUP"
+    fi
 else
-	RUNNER_UID=0
-	RUNNER_USERNAME=root
+    GID=0
+	GROUP="root"
+    echo "GID is not set, using 0."
+fi
+
+if [ -n "${UID:-}" ]; then
+    echo "UID set to $UID."
+    EXISTING_USER=$(getent passwd "$UID" | cut -d: -f1 || true)
+    if [ -n "$EXISTING_USER" ]; then
+        USER="$EXISTING_USER"
+        echo "Using existing user '$USER' with UID $UID."
+    else
+        echo "Creating user '$USER' with UID $UID."
+        adduser --disabled-password --gecos "" --uid "$UID" --gid "$GID" --home "$HOME" --no-create-home "$USER"
+        usermod -aG sudo "$USER"
+    fi
+else
+    UID=0
+	USER="root"
+    echo "UID is not set, using 0."
+fi
+
+if [ $UID -eq 0 ]; then
+	echo "Running as root. Setting RUNNER_ALLOW_RUNASROOT to 1."
 	export RUNNER_ALLOW_RUNASROOT=1
 fi
 
-echo "root       ALL=(ALL:ALL) ALL" > /etc/sudoers
-echo "%sudo      ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-echo "Defaults   env_keep += \"DEBIAN_FRONTEND\"" >> /etc/sudoers
+mkdir -p "$HOME"
+chown -R "$USER":"$GROUP" "$HOME"
 
-IS_INSTALLED=0
+groupadd -g $DOCKER_GID -f docker-host
+usermod -aG docker-host $USER
 
-if [ -f "$RUNNER_HOME/.credentials" ] && [ -f "$RUNNER_HOME/.credentials_rsaparams" ]; then
+if [ -f "$HOME/.credentials" ] && [ -f "$HOME/.credentials_rsaparams" ]; then
 	echo "Credentials found, skip configuring."
-	IS_INSTALLED=1
 else
 	echo "No credentials found."
 	echo "Installing actions runner..."
-	rsync -a --info=progress2 --delete /runner/ $RUNNER_HOME/
-fi
-
-chown $RUNNER_USERNAME:$RUNNER_USERNAME -R $RUNNER_HOME
-cd $RUNNER_HOME
-
-if [ $IS_INSTALLED -eq 0 ]; then
+	rsync -a --info=progress2 --delete /runner/ $HOME/
 	echo "Configuring..."
-	gosu $RUNNER_USERNAME ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
+	gosu $USER ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
 fi
 
-exec gosu $RUNNER_USERNAME bash -c "$@"
+cd $HOME
+
+exec gosu $USER bash -c "$@"

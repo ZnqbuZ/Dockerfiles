@@ -9,6 +9,7 @@ parser.add_argument("--dir", type=str, default="/var/lib/runners", help="Directo
 parser.add_argument("--prefix", type=str, help="Prefix for runner names")
 parser.add_argument("--scale", type=int, default=4, help="Number of runners to create")
 parser.add_argument("--uid", type=int, help="UID for the runner user")
+parser.add_argument("--gid", type=int, help="GID for the runner group")
 parser.add_argument("--docker-gid", type=int, help="GID for the Docker group on the host")
 parser.add_argument("--url", type=str, help="URL of the GitHub Actions runner")
 parser.add_argument("--token", type=str, help="Token for the GitHub Actions runner")
@@ -19,6 +20,7 @@ runner_group = args.prefix
 scale = args.scale
 
 runner_uid = args.uid
+runner_gid = args.gid
 docker_gid = args.docker_gid
 runner_url = args.url
 runner_token = args.token
@@ -40,7 +42,10 @@ runner = {
 }
 
 if runner_uid is not None:
-    runner['environment']['RUNNER_UID'] = runner_uid
+    runner['environment']['UID'] = runner_uid
+
+if runner_gid is not None:
+    runner['environment']['GID'] = runner_gid
 
 for i in range(scale):
     runner_home = os.path.join(runners_dir, f'{runner_group}-{i}')
@@ -48,7 +53,7 @@ for i in range(scale):
     current_runner = copy.deepcopy(runner)
     current_runner['volumes'].append(f"{runner_home}:{runner_home}")
     current_runner['environment']['RUNNER_NAME'] = f"{runner_group}-{i}"
-    current_runner['environment']['RUNNER_HOME'] = runner_home
+    current_runner['environment']['HOME'] = runner_home
 
     compose['services'][f'{runner_group}-{i}'] = current_runner
 
