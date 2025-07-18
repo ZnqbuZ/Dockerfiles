@@ -33,17 +33,16 @@ if [ -n "${UID:-}" ]; then
         echo "Creating user '$USER' with UID $UID"
         adduser --disabled-password --gecos "" --uid "$UID" --gid "$GID" --home "$HOME" --no-create-home "$USER"
         usermod -aG sudo "$USER"
-        mkdir -p "$HOME"
-        chown -R "$USER":"$GROUP" "$HOME"
     fi
-
-    chown -R "$USER":"$GROUP" "$ROOT_DIR"
 else
     UID=0
 	USER="root"
     echo "UID is not set, using 0"
 	export RUNNER_ALLOW_RUNASROOT=1
 fi
+
+mkdir -p "$HOME"
+chown -R "$USER":"$GROUP" "$HOME"
 
 groupadd -g $DOCKER_GID -f docker-host
 usermod -aG docker-host $USER
