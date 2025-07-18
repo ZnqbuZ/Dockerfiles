@@ -38,6 +38,10 @@ else
     UID=0
 	USER="root"
     echo "UID is not set, using 0"
+fi
+
+if [ $UID -eq 0 ]; then
+	echo "Running as root"
 	export RUNNER_ALLOW_RUNASROOT=1
 fi
 
@@ -56,5 +60,7 @@ else
 	echo "Configuring..."
 	gosu $USER ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
 fi
+
+cd $HOME
 
 exec gosu $USER bash -c "$@"
