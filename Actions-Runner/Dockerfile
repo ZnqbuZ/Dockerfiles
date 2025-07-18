@@ -21,7 +21,7 @@ RUN set -eux; \
 RUN  set -eux; \
     echo "root       ALL=(ALL:ALL) ALL" > /etc/sudoers \
     && echo "%sudo      ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    && echo "Defaults   env_keep += \"DEBIAN_FRONTEND\"" >> /etc/sudoers \
+    && echo 'Defaults   env_keep += "DEBIAN_FRONTEND"' >> /etc/sudoers \
 	&& echo 'Defaults   env_keep += "HOME"' >> /etc/sudoers
 
 RUN set -eux; \

@@ -47,20 +47,12 @@ chown -R "$USER":"$GROUP" "$HOME"
 groupadd -g $DOCKER_GID -f docker-host
 usermod -aG docker-host $USER
 
-IS_INSTALLED=0
-
 if [ -f "$HOME/.credentials" ] && [ -f "$HOME/.credentials_rsaparams" ]; then
 	echo "Credentials found, skip configuring."
-	IS_INSTALLED=1
 else
 	echo "No credentials found."
 	echo "Installing actions runner..."
 	rsync -a --info=progress2 --delete /runner/ $HOME/
-fi
-
-cd $HOME
-
-if [ $IS_INSTALLED -eq 0 ]; then
 	echo "Configuring..."
 	gosu $USER ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
 fi
