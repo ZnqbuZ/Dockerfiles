@@ -17,6 +17,9 @@ def handle_sigterm(signum, frame):
 signal.signal(signal.SIGTERM, handle_sigterm)
 
 log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
+
+check_interval = int(os.getenv("CHECK_INTERVAL", 120))
+
 dns_zone = os.getenv("DNS_ZONE")
 base_zone = os.getenv("BASE_ZONE", dns_zone)
 
@@ -51,7 +54,7 @@ logger.info("Started.")
 rrsets_cache = []
 
 while True:
-    sleep(5)
+    sleep(check_interval)
     try:
         logger.debug("Retrieving endpoints...")
         response = requests.get(
@@ -164,7 +167,8 @@ while True:
             logger.debug("No change detected.")
             continue
 
-        logger.info(change)
+        logger.info("Change detected.")
+        logger.debug(change)
 
         logger.debug("Retriving zone info...")
         response = requests.get(
@@ -178,24 +182,18 @@ while True:
 
         dns_zone_details = response.json()
 
-        delta_rrsets = list(
-            map(
-                lambda r: {
-                    "name": r["name"],
-                    "type": r["type"],
-                    "changetype": "DELETE",
-                },
-                filter(
-                    lambda r: r["type"] == "A"
-                    or r["type"] == "AAAA"
-                    or r["type"] == "CNAME",
-                    dns_zone_details["rrsets"],
-                ),
-            )
-        )
+        delta_rrsets = [
+            {
+                "name": r["name"],
+                "type": r["type"],
+                "changetype": "DELETE",
+            }
+            for r in dns_zone_details["rrsets"]
+            if r["type"] in ["A", "AAAA", "CNAME"]
+        ]
         delta_rrsets.extend(rrsets)
 
-        logger.info("Updating records...")
+        logger.debug("Updating records...")
         response = requests.patch(
             powerdns_api_endpoint,
             data=json.dumps({"rrsets": delta_rrsets}),
@@ -210,7 +208,7 @@ while True:
             err_msg += f"Response: {response.text}\n"
             raise Exception(err_msg)
 
-        logger.info("Rectifying zone...")
+        logger.debug("Rectifying zone...")
         response = requests.put(
             powerdns_api_endpoint + "/rectify",
             headers={"X-API-Key": powerdns_api_token},
