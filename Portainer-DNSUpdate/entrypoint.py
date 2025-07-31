@@ -55,6 +55,7 @@ rrsets_cache_set = set()
 
 while True:
     try:
+        logger.debug("====================")
         logger.debug("Retrieving endpoints...")
         response = requests.get(
             portainer_api_endpoint + "/endpoints",
@@ -168,20 +169,21 @@ while True:
             logger.debug("No change detected.")
             continue
 
-        logger.info("Change detected.")
         logger.info("====================")
+        logger.info("Change detected.")
+        logger.info("--------------------")
         logger.info("Added")
         logger.info("--------------------")
         for r_str in rrsets_added:
             r = json.loads(r_str)
             logger.info(f"\t{r['name']} -> {[record['content'] for record in r['records']]}")
-        logger.info("====================")
+        logger.info("--------------------")
         logger.info("Removed")
         logger.info("--------------------")
         for r_str in rrsets_removed:
             r = json.loads(r_str)
             logger.info(f"\t{r['name']} -> {[record['content'] for record in r['records']]}")
-        logger.info("====================")
+        logger.info("--------------------")
 
         logger.debug("Retrieving zone info...")
         response = requests.get(
