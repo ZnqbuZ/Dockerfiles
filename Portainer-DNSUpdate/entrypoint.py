@@ -54,7 +54,6 @@ rrsets_cache = []
 rrsets_cache_set = set()
 
 while True:
-    sleep(check_interval)
     try:
         logger.debug("Retrieving endpoints...")
         response = requests.get(
@@ -239,3 +238,6 @@ while True:
     except Exception as err:
         logger.error(err, exc_info=logger.getEffectiveLevel() <= logging.INFO)
         continue
+
+    finally:
+        sleep(check_interval)
