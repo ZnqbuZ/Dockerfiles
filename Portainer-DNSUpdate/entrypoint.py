@@ -184,7 +184,7 @@ while True:
             logger.debug(r)
         logger.debug("====================")
 
-        logger.debug("Retriving zone info...")
+        logger.debug("Retrieving zone info...")
         response = requests.get(
             powerdns_api_endpoint, headers={"X-API-Key": powerdns_api_token}
         )
