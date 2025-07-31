@@ -78,7 +78,7 @@ while True:
             domain_name = endpoint["Name"].replace(" ", "-") + "." + dns_zone
             endpoint_fqdn = endpoint["Name"].replace(" ", "-") + "." + base_zone
 
-            logger.debug(f"CNAME for endpoint: {domain_name} ->")
+            logger.debug(f"CNAME for endpoint: {domain_name} -> {endpoint_fqdn}")
             rrsets.append(
                 {
                     "name": domain_name,
@@ -88,8 +88,6 @@ while True:
                     "records": [{"content": endpoint_fqdn, "disabled": False}],
                 }
             )
-
-            logger.debug(endpoint)
             
             for container in endpoint["Snapshots"][0]["DockerSnapshotRaw"][
                 "Containers"
@@ -172,17 +170,17 @@ while True:
             continue
 
         logger.info("Change detected.")
-        logger.debug("====================")
-        logger.debug("Added")
-        logger.debug("--------------------")
+        logger.info("====================")
+        logger.info("Added")
+        logger.info("--------------------")
         for r in rrsets_added:
-            logger.debug(r)
-        logger.debug("====================")
-        logger.debug("Removed")
-        logger.debug("--------------------")
+            logger.info(r)
+        logger.info("====================")
+        logger.info("Removed")
+        logger.info("--------------------")
         for r in rrsets_removed:
-            logger.debug(r)
-        logger.debug("====================")
+            logger.info(r)
+        logger.info("====================")
 
         logger.debug("Retrieving zone info...")
         response = requests.get(
