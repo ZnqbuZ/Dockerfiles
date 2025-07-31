@@ -172,13 +172,15 @@ while True:
         logger.info("====================")
         logger.info("Added")
         logger.info("--------------------")
-        for r in rrsets_added:
-            logger.info(r)
+        for r_str in rrsets_added:
+            r = json.loads(r_str)
+            logger.info(f"\t{r['name']} -> {[record['content'] for record in r['records']]}")
         logger.info("====================")
         logger.info("Removed")
         logger.info("--------------------")
-        for r in rrsets_removed:
-            logger.info(r)
+        for r_str in rrsets_removed:
+            r = json.loads(r_str)
+            logger.info(f"\t{r['name']} -> {[record['content'] for record in r['records']]}")
         logger.info("====================")
 
         logger.debug("Retrieving zone info...")
