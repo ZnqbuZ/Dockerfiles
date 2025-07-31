@@ -85,6 +85,8 @@ while True:
                     "records": [{"content": endpoint_fqdn, "disabled": False}],
                 }
             )
+
+            logger.debug(endpoint)
             
             for container in endpoint["Snapshots"][0]["DockerSnapshotRaw"][
                 "Containers"
@@ -190,7 +192,8 @@ while True:
                     dns_zone_details["rrsets"],
                 ),
             )
-        ).extend(rrsets)
+        )
+        delta_rrsets.extend(rrsets)
 
         logger.info("Updating records...")
         response = requests.patch(
