@@ -92,7 +92,7 @@ while True:
                 "Containers"
             ]:
                 logger.debug(
-                    f"Container: {container["Names"]} @ {endpoint["Name"]} {container["Id"]}"
+                    f"\tContainer: {container["Names"]} @ {endpoint["Name"]} {container["Id"]}"
                 )
                 fqdn = f"{container["Id"][:6]}.{domain_name}"
                 for name in container["Names"]:
@@ -108,7 +108,7 @@ while True:
 
                 if "host" in container["NetworkSettings"]["Networks"]:
                     logger.debug(
-                        f"Host network found. Use CNAME record: {fqdn} -> {domain_name}"
+                        f"\t\tHost network found. Use CNAME record: {fqdn} -> {domain_name}"
                     )
                     rrsets.append(
                         {
@@ -140,14 +140,14 @@ while True:
                 for network in container["NetworkSettings"]["Networks"]:
                     ip = container["NetworkSettings"]["Networks"][network]["IPAddress"]
                     if ip:
-                        logger.debug(f"IPv4 Address: {ip}")
+                        logger.debug(f"\t\tIPv4 Address: {ip}")
                         A_rrset["records"].append({"content": ip, "disabled": False})
 
                     ipv6 = container["NetworkSettings"]["Networks"][network][
                         "GlobalIPv6Address"
                     ]
                     if ipv6:
-                        logger.debug(f"IPv6 Address: {ipv6}")
+                        logger.debug(f"\t\tIPv6 Address: {ipv6}")
                         AAAA_rrset["records"].append(
                             {"content": ipv6, "disabled": False}
                         )
