@@ -6,7 +6,6 @@ import logging
 import signal
 
 import requests
-from deepdiff import DeepDiff
 
 
 def handle_sigterm(signum, frame):
@@ -52,6 +51,7 @@ powerdns_api_endpoint += f"/servers/localhost/zones/{dns_zone}"
 logger.info("Started.")
 
 rrsets_cache = []
+rrsets_cache_set = set()
 
 while True:
     sleep(check_interval)
@@ -162,13 +162,27 @@ while True:
 
         logger.debug("Detecting change...")
 
-        change = DeepDiff(rrsets_cache, rrsets, ignore_order=True)
-        if not change:
+        rrsets_set = set(json.dumps(r, sort_keys=True) for r in rrsets)
+
+        rrsets_added = rrsets_set - rrsets_cache_set
+        rrsets_removed = rrsets_cache_set - rrsets_set
+
+        if not (rrsets_added or rrsets_removed):
             logger.debug("No change detected.")
             continue
 
         logger.info("Change detected.")
-        logger.debug(change)
+        logger.debug("====================")
+        logger.debug("Added")
+        logger.debug("--------------------")
+        for r in rrsets_added:
+            logger.debug(r)
+        logger.debug("====================")
+        logger.debug("Removed")
+        logger.debug("--------------------")
+        for r in rrsets_removed:
+            logger.debug(r)
+        logger.debug("====================")
 
         logger.debug("Retriving zone info...")
         response = requests.get(
@@ -222,6 +236,7 @@ while True:
         logger.info("Updated.")
 
         rrsets_cache = rrsets
+        rrsets_cache_set = rrsets_set
 
     except Exception as err:
         logger.error(err, exc_info=logger.getEffectiveLevel() <= logging.INFO)

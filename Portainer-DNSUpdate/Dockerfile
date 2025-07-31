@@ -6,7 +6,7 @@ RUN set -eux; \
 	&& rm -rf /var/cache/apk/*
 
 RUN set -eux; \
-	python3 -m pip install --no-cache-dir requests DeepDiff
+	python3 -m pip install --no-cache-dir requests
 
 COPY entrypoint.py /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
