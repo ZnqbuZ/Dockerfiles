@@ -198,7 +198,7 @@ while True:
         logger.info("Updating records...")
         response = requests.patch(
             powerdns_api_endpoint,
-            data=json.dumps({"rrsets": rrsets}),
+            data=json.dumps({"rrsets": delta_rrsets}),
             headers={
                 "X-API-Key": powerdns_api_token,
                 "Content-Type": "application/json",
