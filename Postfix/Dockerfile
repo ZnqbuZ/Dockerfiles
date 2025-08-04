@@ -5,8 +5,7 @@ RUN set -eux; \
 	&& apk add postfix postfix-pgsql \
 	&& rm -rf /var/cache/apk/*
 
-COPY entrypoint.sh /usr/local/bin/entrypoint
-RUN chmod +x /usr/local/bin/entrypoint
+COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
 
 EXPOSE 25
 
