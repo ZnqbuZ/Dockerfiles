@@ -16,7 +16,6 @@ RUN set -eux; \
 	&& sh -eux ~/LaTeX/font-cache.sh \
 	&& sh -eux ~/LaTeX/build.sh
 
-COPY entrypoint.sh /usr/local/bin/entrypoint
-RUN chmod +x /usr/local/bin/entrypoint
+COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
 
 ENTRYPOINT [ "tini", "--", "/usr/local/bin/entrypoint" ]
