@@ -31,7 +31,7 @@ if [ -n "${UID:-}" ]; then
         echo "Using existing user '$USER' with UID $UID."
     else
         echo "Creating user '$USER' with UID $UID."
-        adduser --disabled-password --gecos "" --uid "$UID" --gid "$GID" --home "$HOME" --no-create-home "$USER"
+        adduser --disabled-password --gecos "" --uid "$UID" --gid "$GID" --no-create-home "$USER"
         usermod -aG sudo "$USER"
     fi
 else
@@ -46,7 +46,11 @@ if [ $UID -eq 0 ]; then
 fi
 
 mkdir -p "$HOME"
-chown -R "$USER":"$GROUP" "$HOME"
+
+if [ "$UID" -ne 0 ]; then
+    chown -R "$USER":"$GROUP" "$HOME"
+    usermod -d "$HOME" "$USER"
+fi
 
 groupadd -g $DOCKER_GID -f docker-host
 usermod -aG docker-host $USER
@@ -58,7 +62,7 @@ else
 	echo "Installing actions runner..."
 	rsync -a --info=progress2 --delete /runner/ $HOME/
 	echo "Configuring..."
-	gosu $USER ./config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
+	gosu $USER $HOME/config.sh --url $RUNNER_URL --token $RUNNER_TOKEN --name $RUNNER_NAME --unattended --replace
 fi
 
 cd $HOME
