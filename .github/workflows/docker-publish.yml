@@ -78,7 +78,7 @@ jobs:
             platform: linux/arm64
             suffix: arm64
     concurrency:
-      group: ${{ matrix.dockerfile }}-${{ matrix.arch.platform }}
+      group: ${{ matrix.dockerfile }}-${{ matrix.arch.suffix }}
       cancel-in-progress: false
     runs-on: ${{ matrix.arch.runner }}
     defaults:
