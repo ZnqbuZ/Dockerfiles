@@ -172,9 +172,7 @@ func main() {
 					addgroupArgs = append(addgroupArgs, "--gid", strconv.Itoa(gid))
 				}
 				addgroupArgs = append(addgroupArgs, groupName)
-				output, err := exec.Command("addgroup", addgroupArgs...).CombinedOutput()
-				fmt.Printf("addgroup: %s\n", output)
-				checkError(err)
+				run("Create group", "addgroup", addgroupArgs...)
 			}
 
 			if createUser {
@@ -184,32 +182,21 @@ func main() {
 				}
 				adduserArgs = append(adduserArgs, "--group", groupName)
 				adduserArgs = append(adduserArgs, userName)
-				output, err := exec.Command("adduser", adduserArgs...).CombinedOutput()
-				fmt.Printf("adduser: %s\n", output)
-				checkError(err)
+				run("Create user", "adduser", adduserArgs...)
 
 				if home != "" {
-					output, err = exec.Command("chown", "-R", fmt.Sprintf("%s:%s", userName, groupName), home).CombinedOutput()
-					fmt.Printf("chown: %s\n", output)
-					checkError(err)
-
-					output, err = exec.Command("usermod", "-d", home, userName).CombinedOutput()
-					fmt.Printf("usermod: %s\n", output)
-					checkError(err)
+					run("Set ownership of home directory", "chown", "-R", fmt.Sprintf("%s:%s", userName, groupName), home)
+					run("Set home directory", "usermod", "-d", home, userName)
 				}
 
 				for _, extraGid := range extraGIDs {
 					extraGroupName := fmt.Sprintf("group%d", extraGid)
-					output, err = exec.Command("addgroup", "--gid", strconv.Itoa(extraGid), extraGroupName).CombinedOutput()
-					fmt.Printf("addgroup for extra GID: %s\n", output)
-					checkError(err)
+					run("Create group for extra GID", "addgroup", "--gid", strconv.Itoa(extraGid), extraGroupName)
 					extraGroups = append(extraGroups, extraGroupName)
 				}
 
 				for _, extraGroup := range extraGroups {
-					output, err = exec.Command("usermod", "-aG", extraGroup, userName).CombinedOutput()
-					fmt.Printf("usermod: %s\n", output)
-					checkError(err)
+					run("Add user to group", "usermod", "-aG", extraGroup, userName)
 				}
 			}
 
@@ -218,6 +205,12 @@ func main() {
 	}
 
 	err := cmd.Run(context.Background(), os.Args)
+	checkError(err)
+}
+
+func run(prompt string, name string, arg ...string) {
+	output, err := exec.Command(name, arg...).CombinedOutput()
+	fmt.Printf("%s - %s - %s\n", prompt, name, output)
 	checkError(err)
 }
 
