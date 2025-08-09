@@ -28,8 +28,10 @@ RUN set -eux; \
     apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-pip python3-venv pipx \
-    && rm -rf /var/lib/apt/lists/* \
-    && pipx install pipx \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    pipx install pipx \
     && apt-get autoremove --purge -y pipx \
     && ~/.local/bin/pipx install pipx --global \
     && /usr/local/bin/pipx uninstall pipx \
@@ -56,8 +58,6 @@ RUN set -eux; \
     && apt-get install -y --no-install-recommends docker-ce-cli docker-buildx-plugin docker-compose-plugin skopeo \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=docker.io/znqbuz/base:latest /usr/local/bin/setup_user /usr/local/bin/setup_user
-
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
 
 RUN set -eux; \
@@ -66,6 +66,8 @@ RUN set -eux; \
     mkdir /runner \
     && wget -qO- https://github.com/actions/runner/releases/download/${LATEST_TAG}/actions-runner-linux-x64-${LATEST_VERSION}.tar.gz \
     | tar xz -C /runner
+
+COPY --from=docker.io/znqbuz/base:latest /usr/local/bin/setup_user /usr/local/bin/setup_user
 
 ENTRYPOINT [ "tini", "--", "/usr/local/bin/entrypoint" ]
 
