@@ -165,17 +165,20 @@ jobs:
           IMAGE_NAME="${{ needs.build-and-push.outputs.image-name }}"
           IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
           SHA_TAG="${{ github.sha }}"
-          
-          echo "Creating manifest for ${IMAGE_NAME}:${IMAGE_TAG} and ${IMAGE_NAME}:${SHA_TAG}"
+    
+          echo "::notice::Starting manifest update process for image: ${IMAGE_NAME}"
           for TAG in "${IMAGE_TAG}" "${SHA_TAG}"; do
-            echo "Processing manifest for tag: ${TAG}"
+            echo "::group::⚙️ Processing manifest for tag: ${TAG}"
 
             declare -a AMEND_ARGS=()
             for SUFFIX in "${SUFFIXES[@]}"; do
-              AMEND_ARGS+=("--amend" "${IMAGE_NAME}:${IMAGE_TAG}-${SUFFIX}")
+              AMEND_ARGS+=("--amend" "${IMAGE_NAME}:${TAG}-${SUFFIX}")
             done
 
-            echo "Updating manifest: ${IMAGE_NAME}:${TAG}"
+            echo "🚢 Updating manifest: ${IMAGE_NAME}:${TAG}"
             docker manifest create "${IMAGE_NAME}:${TAG}" "${AMEND_ARGS[@]}"
             docker manifest push "${IMAGE_NAME}:${TAG}"
+
+            echo "✅ Success! Manifest pushed."
+            echo "::endgroup::"
           done
