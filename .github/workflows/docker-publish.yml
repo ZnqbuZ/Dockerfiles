@@ -76,7 +76,7 @@ jobs:
           - runner: ubuntu-24.04-arm
             platform: linux/arm64
     concurrency:
-      group: ${{ matrix.dockerfile }}-${{ matrix.arch }}
+      group: ${{ matrix.dockerfile }}-${{ matrix.arch.platform }}
       cancel-in-progress: false
     runs-on: ${{ matrix.arch.runner }}
     defaults:
