@@ -72,7 +72,7 @@ jobs:
         dockerfile: ${{ fromJson(needs.get-dockerfiles.outputs.list) }}
         arch: [amd64, arm64]
     concurrency:
-      group: ${{ matrix.dockerfile }}-${{ matrix.platform }}
+      group: ${{ matrix.dockerfile }}-${{ matrix.arch }}
       cancel-in-progress: false
     runs-on: ubuntu-latest-${{ matrix.arch }}
     defaults:
