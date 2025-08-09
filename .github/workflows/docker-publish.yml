@@ -123,7 +123,6 @@ jobs:
         with:
           file: ${{ steps.meta.outputs.dockerfile-path }}
           context: ${{ steps.meta.outputs.dockerfile-dir }}
-          platforms: ${{ matrix.arch.platform }}
           push: true
           tags: |
             ${{ steps.meta.outputs.image-name }}:${{ steps.meta.outputs.image-tag }}-${{ matrix.arch.suffix }}
@@ -176,6 +175,7 @@ jobs:
             done
 
             echo "🚢 Updating manifest: ${IMAGE_NAME}:${TAG}"
+            docker rmi "${IMAGE_NAME}:${TAG}" || true
             docker manifest create "${IMAGE_NAME}:${TAG}" "${AMEND_ARGS[@]}"
             docker manifest push "${IMAGE_NAME}:${TAG}"
 
