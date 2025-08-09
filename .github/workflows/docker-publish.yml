@@ -74,6 +74,7 @@ jobs:
       fail-fast: false
       matrix:
         dockerfile: ${{ fromJson(needs.get-dockerfiles.outputs.list) }}
+        platform: [linux/amd64, linux/arm64]
 
     concurrency:
       group: build-${{ matrix.dockerfile }}
@@ -118,7 +119,7 @@ jobs:
         with:
           file: ${{ steps.meta.outputs.dockerfile-path }}
           context: ${{ steps.meta.outputs.dockerfile-dir }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
           tags: |
             ${{ steps.meta.outputs.image-name }}:${{ steps.meta.outputs.image-tag }}
