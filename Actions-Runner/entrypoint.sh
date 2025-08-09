@@ -9,7 +9,7 @@ if [ -z "$USER" ] && [ -z "$UID" ] && [ -z "$GROUP" ] && [ -z "$GID" ]; then
     GID=0
 fi
 
-setup_user --extra-gid "$DOCKER_GID"
+setup_user --extra-group sudo --extra-gid "$DOCKER_GID"
 
 if [ -f "$HOME/.credentials" ] && [ -f "$HOME/.credentials_rsaparams" ]; then
 	echo "Credentials found, skip configuring."
