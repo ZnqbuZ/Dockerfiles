@@ -34,7 +34,7 @@ jobs:
               git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" \
               | while read -r f; do
                   d=$(dirname "$f")
-                  while [[ "$d" != "." ]]; do
+                  while [[ "$d" != "." && "$d" != "${{ github.workspace }}" ]]; do
                     [[ -f "$d/Dockerfile" ]] && echo "$d"
                     d=$(dirname "$d")
                   done
@@ -103,6 +103,7 @@ jobs:
           DOCKERFILE_DIR="$(dirname "$DOCKERFILE_PATH")"
           IMAGE_NAME="${DOCKERFILE_PATH#./}"
           IMAGE_NAME="${IMAGE_NAME%/Dockerfile}"
+          IMAGE_NAME="${IMAGE_NAME//\//-}"
           IMAGE_NAME="$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
           IMAGE_NAME="${DOCKERHUB_USERNAME}/${IMAGE_NAME}"
           IMAGE_TAG="latest"
