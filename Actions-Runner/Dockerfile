@@ -56,9 +56,7 @@ RUN set -eux; \
     && apt-get install -y --no-install-recommends docker-ce-cli docker-buildx-plugin docker-compose-plugin skopeo \
     && rm -rf /var/lib/apt/lists/*
 
-FROM docker.io/znqbuz/base:latest AS base
-
-COPY --from=base /usr/local/bin/setup_user /usr/local/bin/setup_user
+COPY --from=docker.io/znqbuz/base:latest /usr/local/bin/setup_user /usr/local/bin/setup_user
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
 
