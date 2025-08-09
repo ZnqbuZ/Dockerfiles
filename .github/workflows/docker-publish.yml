@@ -33,9 +33,11 @@ jobs:
              readarray -t DOCKERFILE_DIRS <<< "$(
               git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" \
               | while read -r f; do
-                for d=$(dirname "$f"); [[ $d != "." ]]; d=$(dirname "$d"); do
-                  [[ -f "$d/Dockerfile" ]] && echo "$d"
-                done
+                  d=$(dirname "$f")
+                  while [[ "$d" != "." ]]; do
+                    [[ -f "$d/Dockerfile" ]] && echo "$d"
+                    d=$(dirname "$d")
+                  done
               done \
               | sort -u
             )"
