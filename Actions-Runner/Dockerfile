@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM docker.io/ubuntu:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RUNNER_MANUALLY_TRAP_SIG=1
