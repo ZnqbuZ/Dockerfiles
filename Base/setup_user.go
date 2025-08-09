@@ -31,36 +31,43 @@ func main() {
 				Name:        "user",
 				Usage:       "User name",
 				Destination: &userName,
+				Sources:     cli.EnvVars("USER"),
 			},
 			&cli.StringFlag{
 				Name:        "group",
 				Usage:       "Group name",
 				Destination: &groupName,
+				Sources:     cli.EnvVars("GROUP"),
 			},
 			&cli.IntFlag{
 				Name:        "uid",
 				Usage:       "User ID",
 				Destination: &uid,
+				Sources:     cli.EnvVars("UID"),
 			},
 			&cli.IntFlag{
 				Name:        "gid",
 				Usage:       "Group ID",
 				Destination: &gid,
+				Sources:     cli.EnvVars("GID"),
 			},
 			&cli.StringFlag{
 				Name:        "home",
 				Usage:       "Home directory",
 				Destination: &home,
+				Sources:     cli.EnvVars("HOME"),
 			},
 			&cli.IntSliceFlag{
 				Name:        "extra-gid",
 				Usage:       "Extra GID(s)",
 				Destination: &extraGIDs,
+				Sources:     cli.EnvVars("EXTRA_GIDS"),
 			},
 			&cli.StringSliceFlag{
 				Name:        "extra-group",
 				Usage:       "Extra group(s)",
 				Destination: &extraGroups,
+				Sources:     cli.EnvVars("EXTRA_GROUPS"),
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
