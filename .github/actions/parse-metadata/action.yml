@@ -1,0 +1,38 @@
+name: "Parse image metadata from Dockerfile path"
+inputs:
+  path:
+    description: "The path to the Dockerfile"
+  namespace:
+    description: "The namespace for the Docker image"
+    required: true
+outputs:
+  dir:
+    description: "The directory containing the Dockerfile"
+    value: ${{ steps.meta.outputs.dir }}
+  name:
+    description: "The name of the Docker image"
+    value: ${{ steps.meta.outputs.name }}
+  tag:
+    description: "The tag of the Docker image"
+    value: ${{ steps.meta.outputs.tag }}
+runs:
+  using: "composite"
+  steps:
+    - name: Extract image metadata
+      id: meta
+      run: |
+        DOCKERFILE_PATH="${{ matrix.dockerfile }}"
+        DOCKERFILE_DIR="$(dirname "$DOCKERFILE_PATH")"
+        
+        IMAGE_NAME="${DOCKERFILE_PATH#./}"
+        IMAGE_NAME="${IMAGE_NAME%/Dockerfile}"
+        IMAGE_NAME="${IMAGE_NAME//\//-}"
+        IMAGE_NAME="$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+        IMAGE_NAME="${{ inputs.namespace }}/${IMAGE_NAME}"
+        
+        IMAGE_TAG="latest"
+        
+        echo "dir=${DOCKERFILE_DIR}" >> $GITHUB_OUTPUT
+        echo "name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+        echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+      shell: bash -euo pipefail {0}
