@@ -70,11 +70,15 @@ jobs:
       fail-fast: false
       matrix:
         dockerfile: ${{ fromJson(needs.get-dockerfiles.outputs.list) }}
-        arch: [amd64, arm64]
+        arch:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
     concurrency:
       group: ${{ matrix.dockerfile }}-${{ matrix.arch }}
       cancel-in-progress: false
-    runs-on: ubuntu-latest-${{ matrix.arch }}
+    runs-on: ${{ matrix.arch.runner }}
     defaults:
       run:
         shell: bash -euo pipefail {0}
@@ -114,7 +118,7 @@ jobs:
         with:
           file: ${{ steps.meta.outputs.dockerfile-path }}
           context: ${{ steps.meta.outputs.dockerfile-dir }}
-          platforms: ${{ matrix.platform }}
+          platforms: ${{ matrix.arch.platform }}
           push: true
           tags: |
             ${{ steps.meta.outputs.image-name }}:${{ steps.meta.outputs.image-tag }}
