@@ -175,7 +175,6 @@ jobs:
             done
 
             echo "🚢 Updating manifest: ${IMAGE_NAME}:${TAG}"
-            docker rmi "${IMAGE_NAME}:${TAG}" || true
             docker manifest create "${IMAGE_NAME}:${TAG}" "${AMEND_ARGS[@]}"
             docker manifest push "${IMAGE_NAME}:${TAG}"
 
