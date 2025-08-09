@@ -1,8 +1,7 @@
 FROM docker.io/golang:latest AS builder-golang
 
 ENV CGO_ENABLED=0 \
-    GOOS=linux \
-    GOARCH=amd64
+    GOOS=linux
 
 WORKDIR /usr/src/base
 
