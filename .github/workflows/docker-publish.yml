@@ -57,7 +57,7 @@ jobs:
               | xargs
             )"
           else
-            readarray -t DOCKERFILE_DIRS <<< "$(find . -name Dockerfile -exec dirname {} \; | sort -u)"
+            read -r -a DOCKERFILE_DIRS <<< "$(find . -name Dockerfile -exec dirname {} \; | sort -u | xargs)"
           fi
 
           declare -a DOCKERFILES=()
