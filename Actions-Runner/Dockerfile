@@ -1,8 +1,8 @@
 FROM docker.io/ubuntu:latest
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV RUNNER_MANUALLY_TRAP_SIG=1
-ENV ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
+ENV DEBIAN_FRONTEND=noninteractive \
+    RUNNER_MANUALLY_TRAP_SIG=1 \
+    ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
 
 RUN set -eux; \
     install -m 0755 -d /etc/apt/keyrings \
