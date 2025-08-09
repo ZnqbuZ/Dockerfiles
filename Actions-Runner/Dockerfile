@@ -11,7 +11,7 @@ RUN set -eux; \
 RUN set -eux; \
     apt-get update \
     && apt-get install -y --no-install-recommends \
-        tini gosu sudo \ 
+        tini gosu sudo \
         lsb-release gpg-agent software-properties-common \
         ca-certificates curl wget rsync \
         git build-essential \
