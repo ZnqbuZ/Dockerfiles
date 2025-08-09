@@ -73,8 +73,10 @@ jobs:
         arch:
           - runner: ubuntu-latest
             platform: linux/amd64
+            suffix: amd64
           - runner: ubuntu-24.04-arm
             platform: linux/arm64
+            suffix: arm64
     concurrency:
       group: ${{ matrix.dockerfile }}-${{ matrix.arch.platform }}
       cancel-in-progress: false
@@ -82,6 +84,9 @@ jobs:
     defaults:
       run:
         shell: bash -euo pipefail {0}
+    outputs:
+      image-name: ${{ steps.meta.outputs.image-name }}
+      image-tag: ${{ steps.meta.outputs.image-tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -121,8 +126,8 @@ jobs:
           platforms: ${{ matrix.arch.platform }}
           push: true
           tags: |
-            ${{ steps.meta.outputs.image-name }}:${{ steps.meta.outputs.image-tag }}
-            ${{ steps.meta.outputs.image-name }}:${{ github.sha }}
+            ${{ steps.meta.outputs.image-name }}:${{ steps.meta.outputs.image-tag }}-${{ matrix.arch.suffix }}
+            ${{ steps.meta.outputs.image-name }}:${{ github.sha }}-${{ matrix.arch.suffix }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           labels: |
@@ -134,3 +139,43 @@ jobs:
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=MIT
+
+  update-manifest:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: ${{ always() && needs.get-dockerfiles.outputs.list != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile: ${{ fromJson(needs.get-dockerfiles.outputs.list) }}
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Update manifest
+        run: |
+          declare -r SUFFIXES=("amd64" "arm64")
+          
+          IMAGE_NAME="${{ needs.build-and-push.outputs.image-name }}"
+          IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+          SHA_TAG="${{ github.sha }}"
+          
+          echo "Creating manifest for ${IMAGE_NAME}:${IMAGE_TAG} and ${IMAGE_NAME}:${SHA_TAG}"
+          for TAG in "${IMAGE_TAG}" "${SHA_TAG}"; do
+            echo "Processing manifest for tag: ${TAG}"
+
+            declare -a AMEND_ARGS=()
+            for SUFFIX in "${SUFFIXES[@]}"; do
+              AMEND_ARGS+=("--amend" "${IMAGE_NAME}:${IMAGE_TAG}-${SUFFIX}")
+            done
+
+            echo "Updating manifest: ${IMAGE_NAME}:${TAG}"
+            docker manifest create "${IMAGE_NAME}:${TAG}" "${AMEND_ARGS[@]}"
+            docker manifest push "${IMAGE_NAME}:${TAG}"
+          done
