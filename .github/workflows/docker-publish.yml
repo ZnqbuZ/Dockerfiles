@@ -30,7 +30,15 @@ jobs:
           declare -a DOCKERFILE_DIRS=()
 
           if [[ "${{ github.event_name }}" == "push" ]]; then
-             readarray -t DOCKERFILE_DIRS <<< "$(
+            git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" \
+              | while read -r f; do
+                  d=$(dirname "$f")
+                  while [[ "$d" != "." && "$d" != "${{ github.workspace }}" ]]; do
+                    [[ -f "$d/Dockerfile" ]] && echo "$d"
+                    d=$(dirname "$d")
+                  done
+              done
+            readarray -t DOCKERFILE_DIRS <<< "$(
               git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" \
               | while read -r f; do
                   d=$(dirname "$f")
