@@ -36,7 +36,7 @@ jobs:
         run: |
           declare -a DOCKERFILE_DIRS=()
 
-          until false; do
+          while :; do
             if [[ "${{ github.event_name }}" == "push" ]]; then
               read -r -a DOCKERFILE_DIRS <<< "$(
                 git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" \
@@ -59,6 +59,7 @@ jobs:
             fi
           
             read -r -a DOCKERFILE_DIRS <<< "$(find . -name Dockerfile -exec dirname {} \; | sort -u | xargs)"
+            break
           done
           
           NEED_BASE=$(printf '%s|' "Base" "Actions-Runner")
