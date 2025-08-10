@@ -33,7 +33,3 @@ jobs:
           git rebase origin/main || exit 1
 
           git push --force-with-lease origin dev
-
-      - name: Handle rebase conflicts
-        if: ${{ failure() }}
-        run: echo "Rebase failed due to conflicts. A manual rebase is required."
