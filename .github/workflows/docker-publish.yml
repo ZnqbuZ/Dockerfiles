@@ -113,7 +113,7 @@ jobs:
     secrets: inherit
     with:
       dockerfile: "./Base/Dockerfile"
-      rebuild: ${{ github.event.inputs.rebuild || false }}
+      rebuild: ${{ github.event.inputs.rebuild == true }}
 
   build:
     needs: [get-dockerfiles, build-base]
