@@ -18,29 +18,98 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch:
+        include:
           - runner: ubuntu-latest
             platform: linux/amd64
-            suffix: amd64
           - runner: ubuntu-24.04-arm
             platform: linux/arm64
-            suffix: arm64
     concurrency:
-      group: ${{ inputs.dockerfile }}-${{ matrix.arch.suffix }}
+      group: ${{ inputs.dockerfile }}-${{ matrix.platform }}
       cancel-in-progress: false
-    runs-on: ${{ matrix.arch.runner }}
+    runs-on: ${{ matrix.runner }}
     defaults:
       run:
         shell: bash -euo pipefail {0}
     steps:
-      - name: Build & publish image
-        uses: ZnqbuZ/Dockerfiles/.github/actions/build-image@ci
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          dockerfile: ${{ inputs.dockerfile }}
-          platform: ${{ matrix.arch.platform }}
-          rebuild: ${{ inputs.rebuild }}
           username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ vars.DOCKERHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@ci
+        with:
+          namespace: ${{ vars.DOCKERHUB_USERNAME }}
+          dockerfile: ${{ inputs.dockerfile }}
+          platform: ${{ matrix.platform }}
+
+      - name: Restore build hash
+        uses: actions/cache@v4
+        with:
+          path: .build-hash.json
+          key: build-hash
+
+      - name: Compare hash
+        id: hash
+        run: |
+          HASH_FILE=.build-hash.json
+          if [ ! -f "$HASH_FILE" ]; then
+            echo '{}' > "$HASH_FILE"
+          fi
+          
+          KEY="${{ steps.meta.outputs.name }}:${{ steps.meta.outputs.tag }}${{ steps.meta.outputs.suffix }}"
+          HASH=$(jq -r --arg key "$KEY" '.[$key] // ""' "$HASH_FILE")
+          DIR_HASH=$(find "${{ steps.meta.outputs.dir }}" -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)
+          
+          if [ "$DIR_HASH" != "$HASH" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            jq --arg key "$KEY" --arg val "$DIR_HASH" '.[$key] = $val' "$HASH_FILE" > "${HASH_FILE}.tmp" && mv "${HASH_FILE}.tmp" "$HASH_FILE"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+          
+          cat "$HASH_FILE"
+        shell: bash -euo pipefail {0}
+
+      - name: Update build hash
+        if: steps.hash.outputs.changed == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .build-hash.json
+          key: build-hash
+
+      - name: Build and push Docker image
+        if: steps.hash.outputs.changed == 'true' || inputs.rebuild == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          file: ${{ inputs.dockerfile }}
+          context: ${{ steps.meta.outputs.dir }}
+          push: true
+          platforms: ${{ matrix.platform }}
+          tags: |
+            ${{ steps.meta.outputs.name }}:${{ steps.meta.outputs.tag }}${{ steps.meta.outputs.suffix }}
+            ${{ steps.meta.outputs.name }}:${{ github.sha }}${{ steps.meta.outputs.suffix }}
+          provenance: false
+          sbom: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.title=${{ steps.meta.outputs.name }}
+            org.opencontainers.image.description=Custom Docker image from ${{ inputs.dockerfile }}
+            org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=MIT
 
   update-manifest:
     runs-on: ubuntu-latest
