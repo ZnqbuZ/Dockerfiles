@@ -89,11 +89,12 @@ jobs:
     needs: get-dockerfiles
     if: ${{ needs.get-dockerfiles.outputs.base == 'true' }}
     uses: ZnqbuZ/Dockerfiles/.github/workflows/build.yml@ci
+    secrets: inherit
     with:
       dockerfile: './Base/Dockerfile'
 
   build:
-    needs: get-dockerfiles
+    needs: [build-base, get-dockerfiles]
     if: ${{ needs.get-dockerfiles.outputs.list != '[]' }}
     strategy:
       fail-fast: false
@@ -103,5 +104,6 @@ jobs:
       group: ${{ matrix.dockerfile }}
       cancel-in-progress: false
     uses: ZnqbuZ/Dockerfiles/.github/workflows/build.yml@ci
+    secrets: inherit
     with:
       dockerfile: ${{ matrix.dockerfile }}

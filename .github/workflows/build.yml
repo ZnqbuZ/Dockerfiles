@@ -28,7 +28,7 @@ jobs:
       run:
         shell: bash -euo pipefail {0}
     steps:
-      - name: Build & push image
+      - name: Build & publish image
         uses: ZnqbuZ/Dockerfiles/.github/actions/build-image@ci
         with:
           path: ${{ inputs.dockerfile }}
