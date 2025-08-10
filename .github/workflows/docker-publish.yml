@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 0 * * 1'
   workflow_dispatch:
+    inputs:
+      images:
+        description: 'Space-separated list of images to build'
+        required: false
+        default: ''
   push:
 
 jobs:
@@ -26,22 +31,30 @@ jobs:
         run: |
           declare -a DOCKERFILE_DIRS=()
 
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            read -r -a DOCKERFILE_DIRS <<< "$(
-              git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" \
-              | while read -r f; do
-                  d=$(dirname "$f")
-                  while [[ "$d" != "." ]]; do
-                    [[ -f "$d/Dockerfile" ]] && echo "$d"
-                    d=$(dirname "$d")
-                  done
-              done \
-              | sort -u \
-              | xargs
-            )"
-          else
+          until false; do
+            if [[ "${{ github.event_name }}" == "push" ]]; then
+              read -r -a DOCKERFILE_DIRS <<< "$(
+                git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" \
+                | while read -r f; do
+                    d=$(dirname "$f")
+                    while [[ "$d" != "." ]]; do
+                      [[ -f "$d/Dockerfile" ]] && echo "$d"
+                      d=$(dirname "$d")
+                    done
+                done \
+                | sort -u \
+                | xargs
+              )"
+              break
+            fi
+            
+            if [[ "${{ github.event.inputs.images }}" != "" ]]; then
+              read -r -a DOCKERFILE_DIRS <<< "$(echo "${{ github.event.inputs.images }}" | sort -u | xargs)"
+              break
+            fi
+          
             read -r -a DOCKERFILE_DIRS <<< "$(find . -name Dockerfile -exec dirname {} \; | sort -u | xargs)"
-          fi
+          done
           
           NEED_BASE=$(printf '%s|' "Base" "Actions-Runner")
           NEED_BASE=${NEED_BASE%|}
