@@ -9,6 +9,11 @@ on:
         description: 'Space-separated list of images to build'
         required: false
         default: ''
+      rebuild:
+        description: "Whether to rebuild the image if the source files have not changed"
+        required: false
+        type: boolean
+        default: false
   push:
 
 jobs:
@@ -91,7 +96,8 @@ jobs:
     uses: ZnqbuZ/Dockerfiles/.github/workflows/build.yml@ci
     secrets: inherit
     with:
-      dockerfile: './Base/Dockerfile'
+      dockerfile: "./Base/Dockerfile"
+      rebuild: ${{ github.event.inputs.rebuild || false }}
 
   build:
     needs: [build-base, get-dockerfiles]
