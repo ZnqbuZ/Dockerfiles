@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        shell: bash -euo pipefail {0}
+        shell: bash -euxo pipefail {0}
     outputs:
       base: ${{ steps.get-dockerfiles.outputs.base }}
       list: ${{ steps.get-dockerfiles.outputs.list }}
@@ -54,7 +54,16 @@ jobs:
             fi
             
             if [[ "${{ github.event.inputs.images }}" != "" ]]; then
-              read -r -a DOCKERFILE_DIRS <<< "$(echo "${{ github.event.inputs.images }}" | sort -u | xargs)"
+              read -r -a DOCKERFILE_DIRS <<< "$(
+                echo "${{ github.event.inputs.images }}" \
+                | while read -r d; do
+                    d="${d%/}"
+                    [[ $d == ./* ]] || d="./$d"
+                    echo "$d"
+                done \
+                | sort -u \
+                | xargs
+              )"
               break
             fi
           
@@ -62,7 +71,7 @@ jobs:
             break
           done
           
-          NEED_BASE=$(printf '%s|' "Base" "Actions-Runner")
+          NEED_BASE=$(printf '%s|' "./Base" "./Actions-Runner")
           NEED_BASE=${NEED_BASE%|}
           
           if printf '%s\n' "${DOCKERFILE_DIRS[@]}" | grep -E -xq "$NEED_BASE"; then
@@ -73,16 +82,22 @@ jobs:
           declare -a DOCKERFILES=()
 
           for DIR in "${DOCKERFILE_DIRS[@]}"; do
-            if [[ "$DIR" == "Base" ]]; then
+            if [[ "$DIR" == "./Base" ]]; then
               continue
+            fi
+          
+            DOCKERFILE="$DIR/Dockerfile"
+            if [[ ! -f "$DOCKERFILE" ]]; then
+              echo "Dockerfile not found in directory: $DIR"
+              exit 1
             fi
 
             echo "Building Dockerfile in directory: $DIR"
-            DOCKERFILES+=("${DIR}/Dockerfile")
+            DOCKERFILES+=("${DOCKERFILE}")
           done
 
           if [[ ${#DOCKERFILES[@]} -eq 0 ]]; then
-            echo "No Dockerfiles to build"
+            echo "No Dockerfile to build"
             echo "list=[]" >> $GITHUB_OUTPUT
           else
             printf -v DOCKERFILES_STR '%s\n' "${DOCKERFILES[@]}"
@@ -98,11 +113,14 @@ jobs:
     secrets: inherit
     with:
       dockerfile: "./Base/Dockerfile"
-      rebuild: ${{ github.event.inputs.rebuild || false }}
+      rebuild: ${{ github.event.inputs.rebuild == true }}
 
   build:
-    needs: [build-base, get-dockerfiles]
-    if: ${{ needs.get-dockerfiles.outputs.list != '[]' }}
+    needs: [get-dockerfiles, build-base]
+    if: |
+      always()
+      && (needs.get-dockerfiles.result == 'success' && needs.get-dockerfiles.outputs.list != '[]')
+      && (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
