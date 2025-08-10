@@ -65,6 +65,8 @@ runs:
         else
           echo "changed=false" >> "$GITHUB_OUTPUT"
         fi
+        
+        cat "$HASH_FILE"
       shell: bash -euo pipefail {0}
 
     - name: Update build hash
