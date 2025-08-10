@@ -7,6 +7,10 @@ inputs:
   platform:
     description: "The platform for the Docker image"
     required: true
+  rebuild:
+    description: "Whether to rebuild the image if the source files have not changed"
+    required: false
+    default: "true"
   username:
     description: "The username for the Docker Hub account"
     required: true
@@ -37,7 +41,41 @@ runs:
         dockerfile: ${{ inputs.dockerfile }}
         platform: ${{ inputs.platform }}
 
+    - name: Restore build hash
+      uses: actions/cache@v4
+      with:
+        path: .build-hash.json
+        key: build-hash
+
+    - name: Compare hash
+      id: hash
+      run: |
+        HASH_FILE=.build-hash.json
+        if [ ! -f "$HASH_FILE" ]; then
+          echo '{}' > "$HASH_FILE"
+        fi
+        
+        KEY="${{ steps.meta.outputs.name }}"
+        HASH=$(jq -r --arg key "$KEY" '.[$key] // ""' "$HASH_FILE")
+        DIR_HASH=$(find "${{ steps.meta.outputs.dir }}" -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)
+        
+        if [ "$DIR_HASH" != "$HASH" ]; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          jq --arg key "$KEY" --arg val "$DIR_HASH" '.[$key] = $val' "$HASH_FILE" > "${HASH_FILE}.tmp" && mv "${HASH_FILE}.tmp" "$HASH_FILE"
+        else
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash -euo pipefail {0}
+
+    - name: Update build hash
+      if: steps.hash.outputs.changed == 'true'
+      uses: actions/cache@v4
+      with:
+        path: .build-hash.json
+        key: build-hash
+
     - name: Build and push Docker image
+      if: steps.hash.outputs.changed == 'true'
       uses: docker/build-push-action@v6
       with:
         file: ${{ inputs.dockerfile }}

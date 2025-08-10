@@ -7,6 +7,10 @@ on:
         description: 'Dockerfile path'
         required: true
         type: string
+    rebuild:
+      description: "Whether to rebuild the image if the source files have not changed"
+      required: false
+      default: "true"
 
 jobs:
   build:
@@ -33,6 +37,7 @@ jobs:
         with:
           dockerfile: ${{ inputs.dockerfile }}
           platform: ${{ matrix.arch.platform }}
+          rebuild: ${{ inputs.rebuild }}
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
