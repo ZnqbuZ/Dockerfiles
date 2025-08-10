@@ -45,24 +45,23 @@ jobs:
       - name: Restore build hash
         uses: actions/cache@v4
         with:
-          path: .build-hash.json
-          key: build-hash
+          path: .build-hash
+          key: build-hash:${{ steps.meta.outputs.full-name }}
 
       - name: Compare hash
         id: hash
         run: |
           HASH_FILE=.build-hash.json
           if [ ! -f "$HASH_FILE" ]; then
-            echo '{}' > "$HASH_FILE"
+            echo > "$HASH_FILE"
           fi
           
-          KEY="${{ steps.meta.outputs.name }}:${{ steps.meta.outputs.tag }}${{ steps.meta.outputs.suffix }}"
-          HASH=$(jq -r --arg key "$KEY" '.[$key] // ""' "$HASH_FILE")
+          HASH=$(cat "$HASH_FILE")
           DIR_HASH=$(find "${{ steps.meta.outputs.dir }}" -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)
           
           if [ "$DIR_HASH" != "$HASH" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            jq --arg key "$KEY" --arg val "$DIR_HASH" '.[$key] = $val' "$HASH_FILE" > "${HASH_FILE}.tmp" && mv "${HASH_FILE}.tmp" "$HASH_FILE"
+            echo "$DIR_HASH" > "$HASH_FILE"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
@@ -74,10 +73,11 @@ jobs:
         if: steps.hash.outputs.changed == 'true'
         uses: actions/cache@v4
         with:
-          path: .build-hash.json
-          key: build-hash
+          path: .build-hash
+          key: build-hash:${{ steps.meta.outputs.full-name }}
 
       - name: Build
+        id: build
         if: steps.hash.outputs.changed == 'true' || inputs.rebuild == 'true'
         run: echo "value=true" >> "$GITHUB_OUTPUT"
 
