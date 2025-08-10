@@ -24,7 +24,6 @@ jobs:
 
       - name: Delete old ci branch
         run: |
-          git branch -D ci
           git push origin --delete ci
 
       - name: Create new ci branch from main
