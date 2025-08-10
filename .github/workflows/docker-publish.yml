@@ -54,7 +54,16 @@ jobs:
             fi
             
             if [[ "${{ github.event.inputs.images }}" != "" ]]; then
-              read -r -a DOCKERFILE_DIRS <<< "$(echo "${{ github.event.inputs.images }}" | sort -u | xargs)"
+              read -r -a DOCKERFILE_DIRS <<< "$(
+                echo "${{ github.event.inputs.images }}" \
+                | while read -r d; do
+                    d="${d%/}"
+                    [[ $d == ./* ]] || d="./$d"
+                    echo "$d"
+                done \
+                | sort -u \
+                | xargs
+              )"
               break
             fi
           
@@ -76,9 +85,15 @@ jobs:
             if [[ "$DIR" == "./Base" ]]; then
               continue
             fi
+          
+            DOCKERFILE="$DIR/Dockerfile"
+            if [[ ! -f "$DOCKERFILE" ]]; then
+              echo "Dockerfile not found in directory: $DIR"
+              exit 1
+            fi
 
             echo "Building Dockerfile in directory: $DIR"
-            DOCKERFILES+=("${DIR}/Dockerfile")
+            DOCKERFILES+=("${DOCKERFILE}")
           done
 
           if [[ ${#DOCKERFILES[@]} -eq 0 ]]; then
