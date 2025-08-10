@@ -5,10 +5,6 @@ on:
     - cron: '0 0 * * 1'
   workflow_dispatch:
   push:
-    paths:
-      - '**/*'
-    branches:
-      - main
 
 jobs:
   get-dockerfiles:
