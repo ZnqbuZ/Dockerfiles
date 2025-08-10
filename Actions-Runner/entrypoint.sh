@@ -9,7 +9,7 @@ if [ -z "${PUSER:-}" ] && [ -z "${PUID:-}" ] && [ -z "${PGROUP:-}" ] && [ -z "${
     export PGID=0
 fi
 
-. <(setup_user --extra-group sudo --extra-gid "$DOCKER_GID") || exit 1
+. <(setup-user --extra-group sudo --extra-gid "$DOCKER_GID") || exit 1
 
 if [ "$PUID" -eq 0 ]; then
 	echo "Running as root. Setting RUNNER_ALLOW_RUNASROOT to 1."
