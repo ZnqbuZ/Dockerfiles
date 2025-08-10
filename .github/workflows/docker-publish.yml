@@ -97,7 +97,7 @@ jobs:
           done
 
           if [[ ${#DOCKERFILES[@]} -eq 0 ]]; then
-            echo "No Dockerfiles to build"
+            echo "No Dockerfile to build"
             echo "list=[]" >> $GITHUB_OUTPUT
           else
             printf -v DOCKERFILES_STR '%s\n' "${DOCKERFILES[@]}"
