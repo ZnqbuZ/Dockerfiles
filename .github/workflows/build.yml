@@ -33,6 +33,8 @@ jobs:
         with:
           path: ${{ inputs.dockerfile }}
           platform: ${{ matrix.arch.platform }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
   update-manifest:
     runs-on: ubuntu-latest
