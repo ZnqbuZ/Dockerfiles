@@ -1,7 +1,7 @@
 name: "Build image from Dockerfile & publish to Docker Hub"
 
 inputs:
-  path:
+  dockerfile:
     description: "The path to the Dockerfile"
     required: true
   platform:
@@ -34,7 +34,7 @@ runs:
       uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@ci
       with:
         namespace: ${{ inputs.username }}
-        path: ${{ inputs.dockerfile }}
+        dockerfile: ${{ inputs.dockerfile }}
         platform: ${{ inputs.platform }}
 
     - name: Build and push Docker image

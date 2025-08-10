@@ -31,7 +31,7 @@ jobs:
       - name: Build & publish image
         uses: ZnqbuZ/Dockerfiles/.github/actions/build-image@ci
         with:
-          path: ${{ inputs.dockerfile }}
+          dockerfile: ${{ inputs.dockerfile }}
           platform: ${{ matrix.arch.platform }}
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
