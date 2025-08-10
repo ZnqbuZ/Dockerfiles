@@ -55,7 +55,7 @@ runs:
           echo '{}' > "$HASH_FILE"
         fi
         
-        KEY="${{ steps.meta.outputs.name }}"
+        KEY="${{ steps.meta.outputs.name }}:${{ steps.meta.outputs.tag }}${{ steps.meta.outputs.suffix }}"
         HASH=$(jq -r --arg key "$KEY" '.[$key] // ""' "$HASH_FILE")
         DIR_HASH=$(find "${{ steps.meta.outputs.dir }}" -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)
         
@@ -75,7 +75,7 @@ runs:
         key: build-hash
 
     - name: Build and push Docker image
-      if: steps.hash.outputs.changed == 'true'
+      if: steps.hash.outputs.changed == 'true' || inputs.rebuild == 'true'
       uses: docker/build-push-action@v6
       with:
         file: ${{ inputs.dockerfile }}

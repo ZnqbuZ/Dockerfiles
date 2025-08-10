@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       dockerfile:
-        description: 'Dockerfile path'
+        description: "The path to the Dockerfile"
         required: true
         type: string
       rebuild:
