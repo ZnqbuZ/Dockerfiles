@@ -13,6 +13,7 @@ jobs:
       run:
         shell: bash -euo pipefail {0}
     outputs:
+      base: ${{ steps.get-dockerfiles.outputs.base }}
       list: ${{ steps.get-dockerfiles.outputs.list }}
     steps:
       - name: Checkout repository
@@ -41,10 +42,22 @@ jobs:
           else
             read -r -a DOCKERFILE_DIRS <<< "$(find . -name Dockerfile -exec dirname {} \; | sort -u | xargs)"
           fi
+          
+          NEED_BASE=$(printf '%s|' "Base" "Actions-Runner")
+          NEED_BASE=${NEED_BASE%|}
+          
+          if printf '%s\n' "${DOCKERFILE_DIRS[@]}" | grep -E -xq "$NEED_BASE"; then
+            echo "Found image depending on Base."
+            echo "base=true" >> $GITHUB_OUTPUT
+          fi
 
           declare -a DOCKERFILES=()
 
           for DIR in "${DOCKERFILE_DIRS[@]}"; do
+            if [[ "$DIR" == "Base" ]]; then
+              continue
+            fi
+
             echo "Building Dockerfile in directory: $DIR"
             DOCKERFILES+=("${DIR}/Dockerfile")
           done
@@ -59,6 +72,13 @@ jobs:
             echo "list=$DOCKERFILES_JSON" >> $GITHUB_OUTPUT
           fi
 
+  build-base:
+    needs: get-dockerfiles
+    if: ${{ needs.get-dockerfiles.outputs.base == 'true' }}
+    uses: ZnqbuZ/Dockerfiles/.github/workflows/build.yml@ci
+    with:
+      dockerfile: './Base/Dockerfile'
+
   build:
     needs: get-dockerfiles
     if: ${{ needs.get-dockerfiles.outputs.list != '[]' }}
@@ -66,73 +86,9 @@ jobs:
       fail-fast: false
       matrix:
         dockerfile: ${{ fromJson(needs.get-dockerfiles.outputs.list) }}
-        arch:
-          - runner: ubuntu-latest
-            platform: linux/amd64
-            suffix: amd64
-          - runner: ubuntu-24.04-arm
-            platform: linux/arm64
-            suffix: arm64
     concurrency:
-      group: ${{ matrix.dockerfile }}-${{ matrix.arch.suffix }}
+      group: ${{ matrix.dockerfile }}
       cancel-in-progress: false
-    runs-on: ${{ matrix.arch.runner }}
-    defaults:
-      run:
-        shell: bash -euo pipefail {0}
-    steps:
-      - name: Build & push image
-        uses: ZnqbuZ/Dockerfiles/.github/actions/build-image@ci
-        with:
-          path: ${{ matrix.dockerfile }}
-          platform: ${{ matrix.arch.platform }}
-
-  update-manifest:
-    runs-on: ubuntu-latest
-    needs: [ get-dockerfiles, build ]
-    if: ${{ always() && needs.get-dockerfiles.outputs.list != '[]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        dockerfile: ${{ fromJson(needs.get-dockerfiles.outputs.list) }}
-    defaults:
-      run:
-        shell: bash -euo pipefail {0}
-    steps:
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Extract image metadata
-        id: meta
-        uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@main
-        with:
-          namespace: ${{ vars.DOCKERHUB_USERNAME }}
-          path: ${{ matrix.dockerfile }}
-
-      - name: Update manifest
-        run: |
-          declare -r SUFFIXES=("amd64" "arm64")
-          
-          IMAGE_NAME="${{ steps.meta.outputs.name }}"
-          IMAGE_TAG="${{ steps.meta.outputs.tag }}"
-          SHA_TAG="${{ github.sha }}"
-          
-          echo "::notice::Starting manifest update process for image: ${IMAGE_NAME}"
-          for TAG in "${IMAGE_TAG}" "${SHA_TAG}"; do
-            echo "::group::⚙️ Processing manifest for tag: ${TAG}"
-
-            declare -a AMEND_ARGS=()
-            for SUFFIX in "${SUFFIXES[@]}"; do
-              AMEND_ARGS+=("--amend" "${IMAGE_NAME}:${TAG}-${SUFFIX}")
-            done
-
-            echo "🚢 Updating manifest: ${IMAGE_NAME}:${TAG}"
-            docker manifest create "${IMAGE_NAME}:${TAG}" "${AMEND_ARGS[@]}"
-            docker manifest push "${IMAGE_NAME}:${TAG}"
-
-            echo "✅ Success! Manifest pushed."
-            echo "::endgroup::"
-          done
+    uses: ZnqbuZ/Dockerfiles/.github/workflows/build.yml@ci
+    with:
+      dockerfile: ${{ matrix.dockerfile }}
