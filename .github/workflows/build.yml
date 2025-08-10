@@ -70,7 +70,7 @@ jobs:
           IMAGE_TAG="${{ steps.meta.outputs.tag }}"
           SHA_TAG="${{ github.sha }}"
           
-          echo "::notice::Starting manifest update process for image: ${IMAGE_NAME}"
+          echo "Starting manifest update process for image: ${IMAGE_NAME}"
           for TAG in "${IMAGE_TAG}" "${SHA_TAG}"; do
             echo "::group::⚙️ Processing manifest for tag: ${TAG}"
 
