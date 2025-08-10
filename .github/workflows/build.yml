@@ -143,10 +143,9 @@ jobs:
           
           IMAGE_NAME="${{ steps.meta.outputs.name }}"
           IMAGE_TAG="${{ steps.meta.outputs.tag }}"
-          SHA_TAG="${{ github.sha }}"
           
           echo "Starting manifest update process for image: ${IMAGE_NAME}"
-          for TAG in "${IMAGE_TAG}" "${SHA_TAG}"; do
+          for TAG in "${IMAGE_TAG}"; do
             echo "::group::⚙️ Processing manifest for tag: ${TAG}"
 
             declare -a AMEND_ARGS=()
