@@ -1,4 +1,4 @@
-name: Manage CI Branch
+name: Manage ci branch
 
 on:
   pull_request:
