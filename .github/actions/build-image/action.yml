@@ -1,5 +1,5 @@
-name: build-image
-description: "Build image from Dockerfile & publish to Docker Hub"
+name: "Build image from Dockerfile & publish to Docker Hub"
+
 inputs:
   path:
     description: "The path to the Dockerfile"
@@ -13,6 +13,7 @@ inputs:
   password:
     description: "The password for the Docker Hub account"
     required: true
+
 runs:
   using: "composite"
   steps:

@@ -1,4 +1,5 @@
 name: "Parse image metadata from Dockerfile path"
+
 inputs:
   path:
     description: "The path to the Dockerfile"
@@ -8,6 +9,7 @@ inputs:
   platform:
     description: "The platform for the Docker image"
     required: false
+
 outputs:
   dir:
     description: "The directory containing the Dockerfile"
@@ -21,6 +23,7 @@ outputs:
   suffix:
     description: "The tag suffix of the Docker image"
     value: ${{ steps.meta.outputs.suffix }}
+
 runs:
   using: "composite"
   steps:
