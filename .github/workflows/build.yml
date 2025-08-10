@@ -51,10 +51,10 @@ jobs:
 
       - name: Extract image metadata
         id: meta
-        uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@main
+        uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@ci
         with:
           namespace: ${{ vars.DOCKERHUB_USERNAME }}
-          path: ${{ inputs.dockerfile }}
+          dockerfile: ${{ inputs.dockerfile }}
 
       - name: Update manifest
         run: |
