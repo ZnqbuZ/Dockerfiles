@@ -62,7 +62,7 @@ jobs:
             break
           done
           
-          NEED_BASE=$(printf '%s|' "Base" "Actions-Runner")
+          NEED_BASE=$(printf '%s|' "./Base" "./Actions-Runner")
           NEED_BASE=${NEED_BASE%|}
           
           if printf '%s\n' "${DOCKERFILE_DIRS[@]}" | grep -E -xq "$NEED_BASE"; then
@@ -73,7 +73,7 @@ jobs:
           declare -a DOCKERFILES=()
 
           for DIR in "${DOCKERFILE_DIRS[@]}"; do
-            if [[ "$DIR" == "Base" ]]; then
+            if [[ "$DIR" == "./Base" ]]; then
               continue
             fi
 
@@ -102,7 +102,10 @@ jobs:
 
   build:
     needs: [build-base, get-dockerfiles]
-    if: ${{ needs.get-dockerfiles.outputs.list != '[]' }}
+    if: |
+      always()
+      && (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
+      && (needs.get-dockerfiles.result == 'success' && needs.get-dockerfiles.outputs.list != '[]')
     strategy:
       fail-fast: false
       matrix:
