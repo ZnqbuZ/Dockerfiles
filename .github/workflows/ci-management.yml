@@ -1,4 +1,4 @@
-name: Manage CI Branch
+name: Manage ci branch
 
 on:
   pull_request:
@@ -20,11 +20,13 @@ jobs:
       run:
         shell: bash -euo pipefail {0}
     steps:
+      - uses: actions/checkout@v4
+
       - name: Delete old ci branch
         run: |
-          gh pr list --state closed --head ci --json headRefName --jq '.[0].headRefName'
-          gh branch delete ci
+          git push origin --delete ci
 
       - name: Create new ci branch from main
         run: |
-          gh branch create ci
+          git checkout -b ci origin/main
+          git push --set-upstream origin ci
