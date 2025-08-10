@@ -1,13 +1,16 @@
 name: "Parse image metadata from Dockerfile path"
+
 inputs:
-  path:
+  dockerfile:
     description: "The path to the Dockerfile"
+    required: true
   namespace:
     description: "The namespace for the Docker image"
     required: true
   platform:
     description: "The platform for the Docker image"
     required: false
+
 outputs:
   dir:
     description: "The directory containing the Dockerfile"
@@ -21,13 +24,14 @@ outputs:
   suffix:
     description: "The tag suffix of the Docker image"
     value: ${{ steps.meta.outputs.suffix }}
+
 runs:
   using: "composite"
   steps:
     - name: Extract image metadata
       id: meta
       run: |
-        DOCKERFILE_PATH="${{ matrix.dockerfile }}"
+        DOCKERFILE_PATH="${{ inputs.dockerfile }}"
         DOCKERFILE_DIR="$(dirname "$DOCKERFILE_PATH")"
         
         IMAGE_NAME="${DOCKERFILE_PATH#./}"

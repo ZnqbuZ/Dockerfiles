@@ -28,11 +28,13 @@ jobs:
       run:
         shell: bash -euo pipefail {0}
     steps:
-      - name: Build & push image
+      - name: Build & publish image
         uses: ZnqbuZ/Dockerfiles/.github/actions/build-image@ci
         with:
-          path: ${{ inputs.dockerfile }}
+          dockerfile: ${{ inputs.dockerfile }}
           platform: ${{ matrix.arch.platform }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
   update-manifest:
     runs-on: ubuntu-latest
@@ -49,10 +51,10 @@ jobs:
 
       - name: Extract image metadata
         id: meta
-        uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@main
+        uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@ci
         with:
           namespace: ${{ vars.DOCKERHUB_USERNAME }}
-          path: ${{ inputs.dockerfile }}
+          dockerfile: ${{ inputs.dockerfile }}
 
       - name: Update manifest
         run: |
