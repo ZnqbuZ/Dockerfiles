@@ -51,7 +51,7 @@ jobs:
       - name: Compare hash
         id: hash
         run: |
-          HASH_FILE=.build-hash.json
+          HASH_FILE=.build-hash
           if [ ! -f "$HASH_FILE" ]; then
             echo > "$HASH_FILE"
           fi
