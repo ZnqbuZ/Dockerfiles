@@ -116,11 +116,11 @@ jobs:
       rebuild: ${{ github.event.inputs.rebuild || false }}
 
   build:
-    needs: [build-base, get-dockerfiles]
+    needs: [get-dockerfiles, build-base]
     if: |
       always()
-      && (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
       && (needs.get-dockerfiles.result == 'success' && needs.get-dockerfiles.outputs.list != '[]')
+      && (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
