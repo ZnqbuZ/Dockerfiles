@@ -1,5 +1,5 @@
 name: build-image
-description: "Build & publish image from Dockerfile"
+description: "Build image from Dockerfile & publish to Docker Hub"
 inputs:
   path:
     description: "The path to the Dockerfile"
