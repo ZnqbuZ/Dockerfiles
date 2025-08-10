@@ -24,6 +24,9 @@ outputs:
   suffix:
     description: "The tag suffix of the Docker image"
     value: ${{ steps.meta.outputs.suffix }}
+  full-name:
+    description: "The full name of the Docker image"
+    value: ${{ steps.meta.outputs.name }}:${{ steps.meta.outputs.tag }}${{ steps.meta.outputs.suffix }}
 
 runs:
   using: "composite"
