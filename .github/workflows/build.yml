@@ -42,7 +42,7 @@ jobs:
           dockerfile: ${{ inputs.dockerfile }}
           platform: ${{ matrix.platform }}
 
-      - name: Restore build hash
+      - name: Cache build hash
         uses: actions/cache@v4
         with:
           path: .build-hash
@@ -68,13 +68,6 @@ jobs:
           
           cat "$HASH_FILE"
         shell: bash -euo pipefail {0}
-
-      - name: Update build hash
-        if: steps.hash.outputs.changed == 'true'
-        uses: actions/cache@v4
-        with:
-          path: .build-hash
-          key: build-hash:${{ steps.meta.outputs.full-name }}
 
       - name: Build
         id: build
