@@ -20,6 +20,8 @@ jobs:
       run:
         shell: bash -euo pipefail {0}
     steps:
+      - uses: actions/checkout@v4
+
       - name: Delete old ci branch
         run: |
           gh pr list --state closed --head ci --json headRefName --jq '.[0].headRefName'
