@@ -1,0 +1,39 @@
+name: Manage dev branch
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  manage-dev:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Rebase dev on main
+        run: |
+          git fetch origin main
+
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git rebase origin/main || exit 1
+
+          git push --force-with-lease origin dev
+
+      - name: Handle rebase conflicts
+        if: ${{ failure() }}
+        run: echo "Rebase failed due to conflicts. A manual rebase is required."
