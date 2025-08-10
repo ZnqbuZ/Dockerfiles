@@ -1,17 +1,23 @@
-FROM docker.io/golang:latest AS builder-golang
+FROM docker.io/rust:latest AS builder-rust
 
-ENV CGO_ENABLED=0 \
-    GOOS=linux
+ARG WORKDIR=/usr/src/base
 
-WORKDIR /usr/src/base
+ARG CRATE="setup-user"
 
-COPY go.mod go.sum ./
+WORKDIR ${WORKDIR}/${CRATE}
 
-RUN go mod download
+COPY ${CRATE}/Cargo.toml ${CRATE}/Cargo.lock ./
 
-RUN --mount=type=bind,target=/usr/src/base \
-    go build -a -o /usr/local/bin/ ./setup_user.go
+RUN set -eux; \
+    mkdir src \
+    && echo "fn main() {}" > src/main.rs \
+    && cargo build --release \
+    && rm -rf src
+
+RUN --mount=type=bind,source=${CRATE}/src,target=./src \
+    cargo build --release \
+    && cp target/release/${CRATE} /usr/local/bin/
 
 FROM scratch
 
-COPY --from=builder-golang /usr/local/bin/ /usr/local/bin
+COPY --from=builder-rust /usr/local/bin/ /usr/local/bin
