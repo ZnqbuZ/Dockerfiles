@@ -19,7 +19,7 @@ RUN set -eux; \
         lsb-release gpg-agent software-properties-common \
         ca-certificates curl wget rsync \
         git build-essential \
-        jq unzip libpq-dev \
+        jq unzip libpq-dev postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 RUN  set -eux; \
