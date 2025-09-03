@@ -21,9 +21,9 @@ if [ -f "$HOME/.credentials" ] && [ -f "$HOME/.credentials_rsaparams" ]; then
 else
 	echo "No credentials found."
 	echo "Installing actions runner..."
-	rsync -a --info=progress2 --delete /runner/ "$HOME"/
+	rsync -a --info=progress2 --delete /runner/ "$HOME/"
 	echo "Configuring..."
-	gosu "$PUSER" "$HOME"/config.sh --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" --unattended --replace
+	gosu "$PUSER" "$HOME/config.sh" --url "$RUNNER_URL" --token "$RUNNER_TOKEN" --name "$RUNNER_NAME" --unattended --replace
 fi
 
 cd "$HOME"
