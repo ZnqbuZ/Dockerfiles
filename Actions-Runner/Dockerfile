@@ -1,3 +1,6 @@
+FROM docker.io/znqbuz/base:latest as base
+RUN date > /dev/null
+
 FROM docker.io/ubuntu:latest
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -84,7 +87,7 @@ RUN set -eux; \
     && wget -qO- https://github.com/actions/runner/releases/download/${LATEST_TAG}/actions-runner-linux-x64-${LATEST_VERSION}.tar.gz \
     | tar xz -C /runner
 
-COPY --from=docker.io/znqbuz/base:latest /usr/local/bin/setup-user /usr/local/bin/setup-user
+COPY --from=base /usr/local/bin/setup-user /usr/local/bin/setup-user
 
 ENTRYPOINT [ "tini", "--", "/usr/local/bin/entrypoint" ]
 
