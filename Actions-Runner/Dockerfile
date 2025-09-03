@@ -1,5 +1,4 @@
-FROM docker.io/znqbuz/base:latest as base
-RUN date > /dev/null
+FROM docker.io/znqbuz/base:latest AS base
 
 FROM docker.io/ubuntu:latest
 

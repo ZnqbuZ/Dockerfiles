@@ -91,6 +91,7 @@ jobs:
         with:
           file: ${{ inputs.dockerfile }}
           context: ${{ steps.meta.outputs.dir }}
+          pull: true
           push: true
           platforms: ${{ matrix.platform }}
           tags: |
@@ -109,6 +110,8 @@ jobs:
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=MIT
+          build-args: |
+            CACHE_BUST=${{ github.sha }}
 
   update-manifest:
     runs-on: ubuntu-latest
