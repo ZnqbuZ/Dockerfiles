@@ -75,20 +75,58 @@ fn main() -> Result<()> {
     let should_create_user = resolve_user(&mut args)?;
     let should_create_group = resolve_group(&mut args)?;
 
+    let user_name = args.user.as_ref().unwrap();
+    let group_name = args.group.as_ref().unwrap();
+
+    if should_create_group {
+        let mut groupadd_args: Vec<String> = strings![];
+
+        if let Some(gid) = args.gid {
+            groupadd_args.extend(strings!["--gid", gid]);
+        }
+
+        log!("Create group {group_name}");
+        groupadd_args.push(group_name.clone());
+        run!("groupadd", args & groupadd_args);
+    }
+
+    if should_create_user {
+        let mut useradd_args: Vec<String> = strings!["--no-create-home", "--no-user-group"];
+
+        if let Some(uid) = args.uid {
+            useradd_args.extend(strings!["--uid", uid]);
+        }
+
+        useradd_args.extend(strings!["--gid", group_name]);
+
+        log!("Create user {user_name}");
+        useradd_args.push(user_name.clone());
+        run!("useradd", args & useradd_args);
+    }
+
+    let mut extra_groups = args.extra_groups.clone();
+    for &gid in &args.extra_gids {
+        let extra_group = format!("group{gid}");
+        log!("Create group for extra GID {gid}");
+        run!("groupadd", "--gid", &gid.to_string(), &extra_group);
+        extra_groups.push(extra_group);
+    }
+
+    for group in &extra_groups {
+        log!("Add user {} to extra group {}", user_name, group);
+        run!("usermod", "-aG", group, user_name);
+    }
+
     if let Some(ref home) = args.home {
         if !Path::new(home).exists() {
             log!("Home directory '{home}' not found. Creating it now...");
             run!("mkdir", "-p", home);
-            export!("HOME", home);
         }
-    }
-
-    if should_create_group {
-        create_group(&args)?;
-    }
-
-    if should_create_user {
-        create_user(&args)?;
+        log!("Set ownership of home directory");
+        run!("chown", "-R", &format!("{user_name}:{group_name}"), home);
+        log!("Set user's home directory");
+        run!("usermod", "-d", home, user_name);
+        export!("HOME", home);
     }
 
     Ok(())
@@ -181,61 +219,4 @@ fn resolve_group(args: &mut Args) -> Result<bool> {
     export!("PGROUP", args.group.as_ref().unwrap());
 
     Ok(create)
-}
-
-fn create_group(args: &Args) -> Result<()> {
-    let mut groupadd_args: Vec<String> = strings![];
-
-    if let Some(gid) = args.gid {
-        groupadd_args.extend(strings!["--gid", gid]);
-    }
-
-    let group_name = args.group.as_ref().unwrap().clone();
-    log!("Create group {group_name}");
-
-    groupadd_args.push(group_name);
-
-    run!("groupadd", args & groupadd_args);
-
-    Ok(())
-}
-
-fn create_user(args: &Args) -> Result<()> {
-    let mut useradd_args: Vec<String> = strings!["--no-create-home", "--no-user-group"];
-
-    if let Some(uid) = args.uid {
-        useradd_args.extend(strings!["--uid", uid]);
-    }
-
-    let group_name = args.group.as_ref().unwrap();
-    useradd_args.extend(strings!["--gid", group_name]);
-
-    let user_name = args.user.as_ref().unwrap();
-    log!("Create user {user_name}");
-
-    useradd_args.push(user_name.clone());
-
-    run!("useradd", args & useradd_args);
-
-    if let Some(ref home) = args.home {
-        log!("Set ownership of home directory");
-        run!("chown", "-R", &format!("{user_name}:{group_name}"), home);
-        log!("Set user's home directory");
-        run!("usermod", "-d", home, user_name);
-    }
-
-    let mut extra_groups = args.extra_groups.clone();
-    for &gid in &args.extra_gids {
-        let extra_group = format!("group{gid}");
-        log!("Create group for extra GID {gid}");
-        run!("groupadd", "--gid", &gid.to_string(), &extra_group);
-        extra_groups.push(extra_group);
-    }
-
-    for group in &extra_groups {
-        log!("Add user {} to extra group {}", user_name, group);
-        run!("usermod", "-aG", group, user_name);
-    }
-
-    Ok(())
 }
