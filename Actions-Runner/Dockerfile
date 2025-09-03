@@ -4,6 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     RUNNER_MANUALLY_TRAP_SIG=1 \
     ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
 
+ARG TARGETARCH
+
 RUN set -eux; \
     install -m 0755 -d /etc/apt/keyrings \
     && install -m 0755 -d /etc/apt/sources.list.d 
