@@ -61,7 +61,12 @@ RUN set -eux; \
     && docker --version
 
 RUN set -eux; \
-    curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip \
+    case "$TARGETARCH" in \
+      amd64)  url="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" ;; \
+      arm64)  url="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" ;; \
+      *) echo "Unsupported arch: $TARGETARCH" && exit 1 ;; \
+    esac \
+    && curl -fsSL "$url" -o awscliv2.zip \
     && unzip -q awscliv2.zip \
     && aws/install \
     && rm -f awscliv2.zip \
