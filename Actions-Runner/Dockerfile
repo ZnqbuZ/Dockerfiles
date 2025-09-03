@@ -9,8 +9,8 @@ RUN set -eux; \
     && install -m 0755 -d /etc/apt/sources.list.d 
 
 RUN set -eux; \
-    apt-get update -q \
-    && apt-get install -qy --no-install-recommends \
+    apt-get update -qq \
+    && apt-get install -qqy --no-install-recommends \
         tini gosu sudo \
         lsb-release gpg-agent software-properties-common \
         ca-certificates curl wget rsync \
@@ -25,8 +25,8 @@ RUN  set -eux; \
 	&& echo 'Defaults   env_keep += "HOME"' >> /etc/sudoers
 
 RUN set -eux; \
-    apt-get update -q \
-    && apt-get install -qy --no-install-recommends \
+    apt-get update -qq \
+    && apt-get install -qqy --no-install-recommends \
         python3 python3-pip python3-venv pipx \
     && rm -rf /var/lib/apt/lists/*
 
@@ -43,8 +43,8 @@ RUN set -eux; \
     && echo \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
     | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-    && apt-get update -q \
-    && apt-get install -qy --no-install-recommends gh \
+    && apt-get update -qq \
+    && apt-get install -qqy --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/* \
     && gh --version
 
@@ -55,8 +55,8 @@ RUN set -eux; \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
     $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" \
     | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update -q \
-    && apt-get install -qy --no-install-recommends docker-ce-cli docker-buildx-plugin docker-compose-plugin skopeo \
+    && apt-get update -qq \
+    && apt-get install -qqy --no-install-recommends docker-ce-cli docker-buildx-plugin docker-compose-plugin skopeo \
     && rm -rf /var/lib/apt/lists/* \
     && docker --version
 
