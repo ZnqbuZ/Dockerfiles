@@ -58,6 +58,13 @@ RUN set -eux; \
     && apt-get install -y --no-install-recommends docker-ce-cli docker-buildx-plugin docker-compose-plugin skopeo \
     && rm -rf /var/lib/apt/lists/*
 
+RUN set -eux; \
+    curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip \
+    && unzip -q awscliv2.zip \
+    && aws/install \
+    && rm -f awscliv2.zip \
+    && rm -rf aws
+
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
 
 RUN set -eux; \
