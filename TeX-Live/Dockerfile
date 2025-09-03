@@ -7,7 +7,7 @@ RUN set -eux; \
 	chsh -s /usr/bin/fish
 
 RUN set -eux; \
-	apt-get update \
+	apt-get update -q \
 	&& apt-get install tini fish ssh syncthing fonts-arphic-ukai fonts-arphic-uming fonts-lxgw-wenkai fonts-noto-cjk-extra fonts-smiley-sans fonts-wqy-microhei fonts-wqy-zenhei -y --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
