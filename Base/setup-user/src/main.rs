@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use clap::Parser;
 use nix::unistd::{Gid, Group, Uid, User};
 use std::path::Path;
@@ -72,6 +72,9 @@ struct Args {
 fn main() -> Result<()> {
     let mut args = Args::parse();
 
+    log!("#################### BEGIN Setup User ####################");
+    log!("{}", args.home.as_ref().unwrap().clone());
+
     let should_create_user = resolve_user(&mut args)?;
     let should_create_group = resolve_group(&mut args)?;
 
@@ -129,10 +132,23 @@ fn main() -> Result<()> {
         export!("HOME", home);
     }
 
+    log!("#################### END Setup User ####################");
+
     Ok(())
 }
 
 fn resolve_user(args: &mut Args) -> Result<bool> {
+    let mut resolve_home = |user: &User| {
+        let user_home = user.dir.to_string_lossy().to_string();
+        if let Some(ref home) = args.home {
+            if user_home != *home {
+                log!("User home {user_home} will be replaced by {home}")
+            }
+        } else {
+            args.home = Some(user_home);
+        }
+    };
+
     let mut create = false;
 
     if let Some(uid) = args.uid {
@@ -142,9 +158,11 @@ fn resolve_user(args: &mut Args) -> Result<bool> {
                 if user.name != *name {
                     bail!("UID {uid} has been occupied by user '{}'", user.name);
                 }
+            } else {
+                args.user = Some(user.name.clone());
             }
-            args.user = Some(user.name);
-            args.home = Some(user.dir.to_string_lossy().to_string());
+
+            resolve_home(&user)
         } else {
             create = true;
         }
@@ -160,9 +178,11 @@ fn resolve_user(args: &mut Args) -> Result<bool> {
                         user.uid.as_raw()
                     );
                 }
+            } else {
+                args.uid = Some(user.uid.as_raw());
             }
-            args.uid = Some(user.uid.as_raw());
-            args.home = Some(user.dir.to_string_lossy().to_string());
+
+            resolve_home(&user)
         } else {
             create = true;
         }
