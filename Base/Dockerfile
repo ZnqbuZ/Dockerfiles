@@ -10,11 +10,11 @@ COPY ${CRATE}/Cargo.toml ${CRATE}/Cargo.lock ./
 
 RUN set -eux; \
     mkdir src \
-    && echo "fn main() {}" > src/main.rs \
-    && cargo build --release \
-    && rm -rf src
+    && touch src/main.rs \
+    && cargo build --release || true
 
 RUN --mount=type=bind,source=${CRATE}/src,target=./src \
+    set -eux; \
     cargo build --release \
     && cp target/release/${CRATE} /usr/local/bin/
 

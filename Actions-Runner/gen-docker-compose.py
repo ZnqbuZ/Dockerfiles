@@ -42,10 +42,10 @@ runner = {
 }
 
 if runner_uid is not None:
-    runner['environment']['UID'] = runner_uid
+    runner['environment']['PUID'] = runner_uid
 
 if runner_gid is not None:
-    runner['environment']['GID'] = runner_gid
+    runner['environment']['PGID'] = runner_gid
 
 for i in range(scale):
     runner_home = os.path.join(runners_dir, f'{runner_group}-{i}')

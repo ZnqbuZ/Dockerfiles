@@ -21,7 +21,7 @@ macro_rules! export {
 
 macro_rules! log {
     ($($arg:tt)*) => {
-        println!("echo {}", format!($($arg)*))
+        println!("echo \"{}\"", format!($($arg)*).replace('"', "\\\""))
     };
 }
 
@@ -142,7 +142,7 @@ fn resolve_user(args: &mut Args) -> Result<bool> {
         let user_home = user.dir.to_string_lossy().to_string();
         if let Some(ref home) = args.home {
             if user_home != *home {
-                log!("User home {user_home} will be replaced by {home}")
+                log!("User home '{user_home}' will be replaced by '{home}'")
             }
         } else {
             args.home = Some(user_home);
