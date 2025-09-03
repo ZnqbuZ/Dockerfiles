@@ -28,4 +28,6 @@ fi
 
 cd "$HOME"
 
+export PATH="$HOME/.local/bin:$PATH"
+
 exec gosu "$PUSER" bash -c "$@"
