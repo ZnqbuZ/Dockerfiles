@@ -2,7 +2,9 @@ FROM docker.io/znqbuz/base:latest AS base
 
 FROM docker.io/ubuntu:latest
 
-ENV DEBIAN_FRONTEND=noninteractive \
+ENV DEBCONF_NONINTERACTIVE_SEEN=true \
+    DEBIAN_FRONTEND=noninteractive \
+    DEBIAN_PRIORITY=critical \
     RUNNER_MANUALLY_TRAP_SIG=1 \
     ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
 
@@ -20,7 +22,7 @@ RUN set -eux; \
         ca-certificates curl wget rsync \
         git build-essential \
         jq unzip libpq-dev postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN  set -eux; \
     echo "root       ALL=(ALL:ALL) ALL" > /etc/sudoers \
@@ -32,7 +34,7 @@ RUN set -eux; \
     apt-get update -qq \
     && apt-get install -qqy --no-install-recommends \
         python3 python3-pip python3-venv pipx \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
     pipx install pipx \
@@ -49,7 +51,7 @@ RUN set -eux; \
     | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
     && apt-get update -qq \
     && apt-get install -qqy --no-install-recommends gh \
-    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && gh --version
 
 RUN set -eux; \
@@ -61,7 +63,7 @@ RUN set -eux; \
     | tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update -qq \
     && apt-get install -qqy --no-install-recommends docker-ce-cli docker-buildx-plugin docker-compose-plugin skopeo \
-    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && docker --version
 
 RUN set -eux; \
