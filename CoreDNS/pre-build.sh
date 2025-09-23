@@ -12,3 +12,7 @@ echo "Download URL: $LATEST_URL"
 
 wget "$LATEST_URL" -O- | tar xz
 mv "$DIR-${LATEST_TAG#v}" "$DIR"
+
+cd "$DIR" || exit 1
+
+sed -i '/forward:forward/i alternate:alternate' plugin.cfg
