@@ -38,7 +38,7 @@ jobs:
         id: meta
         uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@ci
         with:
-          namespace: ${{ vars.DOCKERHUB_USERNAME }}
+          namespace: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerfile: ${{ inputs.dockerfile }}
           platform: ${{ matrix.platform }}
 
@@ -82,7 +82,7 @@ jobs:
         if: steps.build.outputs.value == 'true'
         uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
@@ -120,14 +120,14 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract image metadata
         id: meta
         uses: ZnqbuZ/Dockerfiles/.github/actions/parse-metadata@ci
         with:
-          namespace: ${{ vars.DOCKERHUB_USERNAME }}
+          namespace: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerfile: ${{ inputs.dockerfile }}
 
       - name: Update manifest
