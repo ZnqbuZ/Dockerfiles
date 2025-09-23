@@ -29,4 +29,6 @@ COPY --from=builder /usr/src/coredns/coredns /usr/local/bin/coredns
 COPY --from=builder /usr/src/coredns/Corefile /etc/coredns/Corefile
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-CMD [ "coredns", "-conf", "/etc/coredns/Corefile" ]
+ENTRYPOINT [ "coredns" ]
+
+CMD [ "-conf", "/etc/coredns/Corefile" ]
