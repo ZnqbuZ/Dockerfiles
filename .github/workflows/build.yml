@@ -74,6 +74,18 @@ jobs:
         if: steps.hash.outputs.changed == 'true' || inputs.rebuild == 'true'
         run: echo "value=true" >> "$GITHUB_OUTPUT"
 
+      - name: Pre-build script
+        if: steps.build.outputs.value == 'true'
+        run: |
+          cd $(dirname "${{ inputs.dockerfile }}")
+          if [[ -f "pre-build.sh" ]]; then
+              echo "Running pre-build.sh..."
+              chmod +x pre-build.sh
+              ./pre-build.sh
+          else
+              echo "No pre-build.sh found, skipped."
+          fi
+
       - name: Set up Docker Buildx
         if: steps.build.outputs.value == 'true'
         uses: docker/setup-buildx-action@v3
