@@ -22,10 +22,19 @@ RUN set -eux; \
     && ./coredns -version
 
 RUN set -eux; \
+    mkdir /usr/lib/coredns \
+    && ldd ./coredns \
+        | tr ' ' '\n' \
+        | sed -En 's/^[[:space:]]*(\/.*)$/\1/p' \
+        | sort -u \
+        | xargs -I{} cp --parents "{}" /usr/lib/coredns
+
+RUN set -eux; \
     touch Corefile
 
 FROM scratch
 
+COPY --from=builder /usr/lib/coredns/ /
 COPY --from=builder /usr/src/coredns/coredns /usr/local/bin/coredns
 COPY --from=builder /usr/src/coredns/Corefile /etc/coredns/Corefile
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
@@ -33,3 +42,4 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 ENTRYPOINT [ "coredns" ]
 
 CMD [ "-conf", "/etc/coredns/Corefile" ]
+
