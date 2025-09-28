@@ -7,7 +7,7 @@ ENV DEBCONF_NONINTERACTIVE_SEEN=true \
 RUN set -eux; \
     apt-get update -qq \
     && apt-get install -qqy --no-install-recommends \
-            ca-certificates libcap2-bin \
+            ca-certificates libcap2-bin libunbound-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/coredns
