@@ -16,3 +16,5 @@ mv "$DIR-${LATEST_TAG#v}" "$DIR"
 cd "$DIR" || exit 1
 
 sed -i '/forward:forward/i alternate:github.com/coredns/alternate' plugin.cfg
+echo 'unbound:github.com/coredns/unbound' >> plugin.cfg
+

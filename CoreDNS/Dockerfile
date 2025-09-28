@@ -15,8 +15,9 @@ WORKDIR /usr/src/coredns
 COPY ./coredns .
 
 RUN set -eux; \
-    GOFLAGS="-buildvcs=false" make gen \
-    && GOFLAGS="-buildvcs=false" make \
+    export GOFLAGS="-buildvcs=false" CGO_ENABLED=1 \
+    && make gen \
+    && make \
     && setcap cap_net_bind_service=+ep coredns \
     && ./coredns -version
 
