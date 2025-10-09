@@ -1,4 +1,10 @@
+ARG PROJECT=coredns
+ARG WORKDIR=/usr/src/coredns
+
 FROM docker.io/golang:latest AS builder
+
+ARG PROJECT
+ARG WORKDIR
 
 ENV DEBCONF_NONINTERACTIVE_SEEN=true \
     DEBIAN_FRONTEND=noninteractive \
@@ -10,9 +16,9 @@ RUN set -eux; \
             ca-certificates libcap2-bin libunbound-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src/coredns
+WORKDIR ${WORKDIR}
 
-COPY ./coredns .
+COPY ./${PROJECT}/ .
 
 RUN set -eux; \
     export GOFLAGS="-buildvcs=false" CGO_ENABLED=1 \
@@ -34,10 +40,13 @@ RUN set -eux; \
 
 FROM scratch
 
-COPY --from=builder /usr/lib/coredns/ /
-COPY --from=builder /usr/src/coredns/coredns /usr/local/bin/coredns
-COPY --from=builder /usr/src/coredns/Corefile /etc/coredns/Corefile
+ARG PROJECT
+ARG WORKDIR
+
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/lib/coredns/ /
+COPY --from=builder ${WORKDIR}/coredns /usr/local/bin/coredns
+COPY --from=builder ${WORKDIR}/Corefile /etc/coredns/Corefile
 
 ENTRYPOINT [ "coredns" ]
 
