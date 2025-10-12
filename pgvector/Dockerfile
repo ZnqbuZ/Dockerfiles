@@ -1,4 +1,4 @@
-FROM docker.io/pgvector/pgvector:pg17
+FROM docker.io/pgvector/pgvector:pg18
 
 RUN set -eux; \
         /bin/echo -e '\
