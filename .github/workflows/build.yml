@@ -97,6 +97,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Generate timestamp
+        if: steps.build.outputs.value == 'true'
+        id: timestamp
+        run: echo "value=$(date +%Y%m%d%H%M)" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         if: steps.build.outputs.value == 'true'
         uses: docker/build-push-action@v6
@@ -109,6 +114,7 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.name }}:${{ steps.meta.outputs.tag }}${{ steps.meta.outputs.suffix }}
             ${{ steps.meta.outputs.name }}:${{ github.sha }}${{ steps.meta.outputs.suffix }}
+            ${{ steps.meta.outputs.name }}:${{ steps.timestamp.outputs.value }}${{ steps.meta.outputs.suffix }}
           provenance: false
           sbom: false
           cache-from: type=gha
