@@ -113,7 +113,7 @@ jobs:
     secrets: inherit
     with:
       dockerfile: "./Base/Dockerfile"
-      rebuild: ${{ github.event.inputs.rebuild == true }}
+      rebuild: ${{ github.event.inputs.rebuild || github.event_name == 'schedule' }}
 
   build:
     needs: [get-dockerfiles, build-base]
@@ -132,3 +132,4 @@ jobs:
     secrets: inherit
     with:
       dockerfile: ${{ matrix.dockerfile }}
+      rebuild: ${{ github.event.inputs.rebuild || github.event_name == 'schedule' }}
