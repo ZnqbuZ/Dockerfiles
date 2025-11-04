@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import json
-import os
-from time import sleep
 import logging
+import os
 import signal
+from time import sleep
 
 import requests
 
@@ -17,7 +17,7 @@ signal.signal(signal.SIGTERM, handle_sigterm)
 
 log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
 
-check_interval = int(os.getenv("CHECK_INTERVAL", 120))
+check_interval = int(os.getenv("CHECK_INTERVAL", 15))
 
 dns_zone = os.getenv("DNS_ZONE")
 base_zone = os.getenv("BASE_ZONE", dns_zone)
@@ -29,11 +29,11 @@ powerdns_api_endpoint = os.getenv("POWERDNS_API_ENDPOINT")
 powerdns_api_token = os.getenv("POWERDNS_API_TOKEN")
 
 if not (
-    dns_zone
-    and portainer_api_endpoint
-    and portainer_api_token
-    and powerdns_api_endpoint
-    and powerdns_api_token
+        dns_zone
+        and portainer_api_endpoint
+        and portainer_api_token
+        and powerdns_api_endpoint
+        and powerdns_api_token
 ):
     raise ValueError(
         "Please set the required environment variables: DNS_ZONE, PORTAINER_API_ENDPOINT, "
@@ -88,10 +88,8 @@ while True:
                     "records": [{"content": endpoint_fqdn, "disabled": False}],
                 }
             )
-            
-            for container in endpoint["Snapshots"][0]["DockerSnapshotRaw"][
-                "Containers"
-            ]:
+
+            for container in endpoint["Snapshots"][0]["DockerSnapshotRaw"].get("Containers", []):
                 logger.debug(
                     f"\tContainer: {container["Names"]} @ {endpoint["Name"]} {container["Id"]}"
                 )
