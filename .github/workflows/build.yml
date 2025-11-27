@@ -110,7 +110,7 @@ jobs:
         run: |
           {
               echo "value<<EOF"
-              echo "${{ steps.meta.full-name }}"
+              echo "${{ steps.meta.outputs.full-name }}"
               echo "${{ steps.meta.outputs.name }}:${{ github.sha }}${{ steps.meta.outputs.suffix }}"
               echo "${{ steps.meta.outputs.name }}:$(date +%Y%m%d%H%M)${{ steps.meta.outputs.suffix }}"
               echo "EOF"
