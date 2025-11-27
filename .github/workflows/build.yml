@@ -149,7 +149,7 @@ jobs:
         run: echo "value=$(docker manifest inspect "${{ steps.meta.full-name }}" 2>/dev/null | jq -r '.config.digest' || echo "")" >> "$GITHUB_OUTPUT"
 
       - name: Push image
-        if: steps.build.outputs.value == 'true' && (steps.local-digest.outputs.value != steps.remote-digest.outputs.value)
+        if: steps.build.outputs.value == 'true'
         run: |
           read -r -a TAGS <<< "${{ steps.tags.outputs.value }}"
           
