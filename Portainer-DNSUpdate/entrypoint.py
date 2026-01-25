@@ -97,7 +97,7 @@ while True:
 
                 response.raise_for_status()
             except requests.exceptions.Timeout:
-                logger.info(f"Timeout connecting endpoint {endpoint['Name']}, skipped.")
+                logger.warning(f"Timeout connecting endpoint {endpoint['Name']}, skipped.")
                 continue
             except requests.exceptions.RequestException as e:
                 logger.error(f"Unable to fetch containers of endpoint {endpoint["Name"]}: {e}")
