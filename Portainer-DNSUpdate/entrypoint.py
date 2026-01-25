@@ -57,16 +57,15 @@ while True:
     try:
         logger.debug("====================")
         logger.debug("Retrieving endpoints...")
-        response = requests.get(
-             f"{portainer_api_endpoint}/endpoints",
-            headers={"X-API-Key": portainer_api_token},
-        )
+        try:
+            response = requests.get(
+                f"{portainer_api_endpoint}/endpoints",
+                headers={"X-API-Key": portainer_api_token},
+            )
 
-        if response.status_code != 200:
-            err_msg = "Error: Unable to fetch endpoints.\n"
-            err_msg += f"Status Code: {response.status_code}\n"
-            err_msg += f"Response: {response.text}\n"
-            raise Exception(err_msg)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Unable to fetch endpoints: {e}")
 
         endpoints = response.json()
 
@@ -89,22 +88,26 @@ while True:
                 }
             )
 
-            response = requests.get(
-                f"{portainer_api_endpoint}/endpoints/{endpoint['Id']}/docker/containers/json",
-                headers={"X-API-Key": portainer_api_token},
+            try:
+                response = requests.get(
+                    f"{portainer_api_endpoint}/endpoints/{endpoint['Id']}/docker/containers/json",
+                    headers={"X-API-Key": portainer_api_token},
+                    timeout=(3, 5)
                 )
 
-            if response.status_code != 200:
-                err_msg = f"Error: Unable to fetch containers of endpoint: {endpoint["Name"]}.\n"
-                err_msg += f"Status Code: {response.status_code}\n"
-                err_msg += f"Response: {response.text}\n"
+                response.raise_for_status()
+            except requests.exceptions.Timeout:
+                logger.info(f"Timeout connecting endpoint {endpoint['Name']}, skipped.")
+                continue
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Unable to fetch containers of endpoint {endpoint["Name"]}: {e}")
                 continue
 
             containers = response.json()
 
             for container in containers:
                 logger.debug(
-                    f"\tContainer: {container["Names"]} ({container["Id"]}) @ {endpoint["Name"]}"
+                    f"\tContainer: {container["Names"]} @ {endpoint["Name"]} ({container["Id"]})"
                 )
                 fqdn = f"{container["Id"][:6]}.{domain_name}"
                 for name in container["Names"]:
@@ -197,14 +200,14 @@ while True:
         logger.info("--------------------")
 
         logger.debug("Retrieving zone info...")
-        response = requests.get(
-            powerdns_api_endpoint, headers={"X-API-Key": powerdns_api_token}
-        )
-        if response.status_code != 200:
-            err_msg = "Error: Unable to fetch DNS zone details.\n"
-            err_msg += f"Status Code: {response.status_code}\n"
-            err_msg += f"Response: {response.text}\n"
-            raise Exception(err_msg)
+        try:
+            response = requests.get(
+                powerdns_api_endpoint, headers={"X-API-Key": powerdns_api_token}
+            )
+
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Unable to fetch DNS zone details: {e}")
 
         dns_zone_details = response.json()
 
@@ -220,30 +223,30 @@ while True:
         delta_rrsets.extend(rrsets)
 
         logger.debug("Updating records...")
-        response = requests.patch(
-            powerdns_api_endpoint,
-            data=json.dumps({"rrsets": delta_rrsets}),
-            headers={
-                "X-API-Key": powerdns_api_token,
-                "Content-Type": "application/json",
-            },
-        )
-        if response.status_code != 204:
-            err_msg = "Error: Unable to update records\n"
-            err_msg += f"Status Code: {response.status_code}\n"
-            err_msg += f"Response: {response.text}\n"
-            raise Exception(err_msg)
+        try:
+            response = requests.patch(
+                powerdns_api_endpoint,
+                data=json.dumps({"rrsets": delta_rrsets}),
+                headers={
+                    "X-API-Key": powerdns_api_token,
+                    "Content-Type": "application/json",
+                },
+            )
+
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Unable to update records: {e}")
 
         logger.debug("Rectifying zone...")
-        response = requests.put(
-            powerdns_api_endpoint + "/rectify",
-            headers={"X-API-Key": powerdns_api_token},
-        )
-        if response.status_code != 200:
-            err_msg = "Error: Unable to rectify records.\n"
-            err_msg += f"Status Code: {response.status_code}\n"
-            err_msg += f"Response: {response.text}\n"
-            raise Exception(err_msg)
+        try:
+            response = requests.put(
+                powerdns_api_endpoint + "/rectify",
+                headers={"X-API-Key": powerdns_api_token},
+            )
+
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Unable to rectify records: {e}")
 
         logger.info("Updated.")
 
