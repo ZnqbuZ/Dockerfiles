@@ -58,7 +58,7 @@ while True:
         logger.debug("====================")
         logger.debug("Retrieving endpoints...")
         response = requests.get(
-            portainer_api_endpoint + "/endpoints",
+             f"{portainer_api_endpoint}/endpoints",
             headers={"X-API-Key": portainer_api_token},
         )
 
@@ -89,9 +89,22 @@ while True:
                 }
             )
 
-            for container in (endpoint["Snapshots"][0]["DockerSnapshotRaw"].get("Containers") or []):
+            response = requests.get(
+                f"{portainer_api_endpoint}/endpoints/{endpoint['Id']}/docker/containers/json",
+                headers={"X-API-Key": portainer_api_token},
+                )
+
+            if response.status_code != 200:
+                err_msg = f"Error: Unable to fetch containers of endpoint: {endpoint["Name"]}.\n"
+                err_msg += f"Status Code: {response.status_code}\n"
+                err_msg += f"Response: {response.text}\n"
+                continue
+
+            containers = response.json()
+
+            for container in containers:
                 logger.debug(
-                    f"\tContainer: {container["Names"]} @ {endpoint["Name"]} {container["Id"]}"
+                    f"\tContainer: {container["Names"]} ({container["Id"]}) @ {endpoint["Name"]}"
                 )
                 fqdn = f"{container["Id"][:6]}.{domain_name}"
                 for name in container["Names"]:
