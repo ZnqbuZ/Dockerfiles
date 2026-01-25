@@ -89,7 +89,7 @@ while True:
                 }
             )
 
-            for container in endpoint["Snapshots"][0]["DockerSnapshotRaw"].get("Containers", []):
+            for container in (endpoint["Snapshots"][0]["DockerSnapshotRaw"].get("Containers") or []):
                 logger.debug(
                     f"\tContainer: {container["Names"]} @ {endpoint["Name"]} {container["Id"]}"
                 )
