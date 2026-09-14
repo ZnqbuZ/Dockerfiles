@@ -33,15 +33,15 @@ RUN  set -eux; \
 RUN set -eux; \
     apt-get update -qq \
     && apt-get install -qqy --no-install-recommends \
-        python3 python3-pip python3-venv pipx \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+        python3 python3-venv \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
-    pipx install pipx \
-    && apt-get autoremove --purge -y pipx \
-    && ~/.local/bin/pipx install pipx --global \
-    && /usr/local/bin/pipx uninstall pipx \
-    && /usr/local/bin/pipx ensurepath --global
+    python3 -m venv /opt/pipx \
+    && /opt/pipx/bin/pip install --no-cache-dir --upgrade pipx \
+    && ln -s /opt/pipx/bin/pipx /usr/local/bin/pipx \
+    && pipx --version
 
 RUN set -eux; \
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
